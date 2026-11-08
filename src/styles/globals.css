@@ -1,0 +1,82 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-primary: #050807;
+  --bg-secondary: #0D1410;
+  --bg-card: rgba(16, 24, 20, 0.75);
+  --bg-card-border: rgba(255, 255, 255, 0.08);
+  --accent-color: #00C987;
+  --accent-glow: rgba(0, 201, 135, 0.35);
+  --secondary-accent: #C7D0CC;
+  --text-primary: #F4F6F4;
+  --text-secondary: #A7B3AD;
+  --text-muted: #66766F;
+}
+
+/* Light Mode Overhaul (Clean Editorial Ivory / Alabaster Palette) */
+.theme-light {
+  --bg-primary: #F8F9F8;
+  --bg-secondary: #EDF1EE;
+  --bg-card: rgba(255, 255, 255, 0.88);
+  --bg-card-border: rgba(0, 0, 0, 0.08);
+  --accent-color: #009363;
+  --accent-glow: rgba(0, 147, 99, 0.2);
+  --secondary-accent: #405048;
+  --text-primary: #111A15;
+  --text-secondary: #3B4B43;
+  --text-muted: #6B7C73;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--accent-color);
+  border-radius: 3px;
+  opacity: 0.7;
+}
+
+/* Glassmorphism Classes dynamically adapting to theme */
+.glass-panel {
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--bg-card-border);
+}
+
+.theme-light .glass-panel {
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.06);
+}
+
+.glass-pill {
+  background: rgba(125, 125, 125, 0.08);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--bg-card-border);
+}
+
+/* Gradient Text */
+.text-gradient-emerald {
+  background: linear-gradient(135deg, var(--text-primary) 0%, var(--secondary-accent) 45%, var(--accent-color) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-silver {
+  background: linear-gradient(135deg, var(--text-primary) 0%, #A0ACA6 60%, #687771 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Grid Background */
+.luxury-grid {
+  background-image: 
+    linear-gradient(to right, rgba(125, 125, 125, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(125, 125, 125, 0.04) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
