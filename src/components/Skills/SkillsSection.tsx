@@ -49,53 +49,16 @@ export const SkillsSection: React.FC = () => {
   };
 
   return (
-    <section id="skills" className="py-28 relative border-t border-white/5 overflow-hidden transition-colors duration-500" style={{ backgroundColor: 'transparent' }}>
+    <section id="skills" className="py-20 relative border-t border-white/5 overflow-hidden transition-colors duration-500" style={{ backgroundColor: 'transparent' }}>
       {/* Background ambient lighting */}
       <div 
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] rounded-full blur-[140px] pointer-events-none transition-all duration-700" 
         style={{ backgroundColor: 'var(--accent-glow)' }}
       />
 
-      {/* Infinite Horizontal Technology Marquee */}
-      <div 
-        className="w-full py-3.5 border-y overflow-hidden mb-16 select-none transition-colors"
-        style={{ 
-          borderColor: 'var(--bg-card-border)', 
-          backgroundColor: isLightMode ? 'rgba(0,0,0,0.02)' : 'rgba(0,0,0,0.3)' 
-        }}
-      >
-        <div className="flex w-[200%] animate-marquee space-x-8">
-          {[...SKILLS_PILLS, ...SKILLS_PILLS].map((s, idx) => (
-            <div key={idx} className="flex items-center space-x-3 shrink-0">
-              <span 
-                className="font-mono text-xs uppercase tracking-widest transition-colors font-medium hover:opacity-100"
-                style={{ color: 'var(--text-secondary)' }}
-              >
-                {s.name}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-
       <div className="max-w-7xl mx-auto px-6 sm:px-8 relative z-10">
-        {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 pb-6 border-b" style={{ borderColor: 'var(--bg-card-border)' }}>
-          <div>
-            <div className="flex items-center space-x-2 text-xs font-mono tracking-widest uppercase mb-2" style={{ color: 'var(--accent-color)' }}>
-              <span>SKILLS & TECHNOLOGIES</span>
-            </div>
-            <h2 className="font-serif text-4xl sm:text-6xl tracking-tight" style={{ color: 'var(--text-primary)' }}>
-              TECH STACK & TOOLS
-            </h2>
-          </div>
-          <p className="font-mono text-xs mt-4 md:mt-0 tracking-widest uppercase" style={{ color: 'var(--text-muted)' }}>
-            LANGUAGES • FRAMEWORKS • DATABASES • SYSTEMS
-          </p>
-        </div>
-
-        {/* Category Filter Pills */}
-        <div className="flex flex-wrap gap-2.5 mb-12">
+        {/* Category Filter Pills (Aligned directly above the skill cards grid) */}
+        <div className="flex flex-wrap gap-2.5 mb-8">
           {SKILL_CATEGORIES.map((cat) => {
             const isSelected = selectedCategory === cat.id;
             return (
@@ -127,15 +90,15 @@ export const SkillsSection: React.FC = () => {
 
         {/* 
           COORDINATED SCATTER & ASSEMBLE ANIMATION:
-          - As soon as the skills view comes into screen, ALL skill blocks fly in together from outside the screen and lock into their exact grid positions.
-          - When scrolling away / out of viewport, all blocks scatter back out of the screen.
+          - As soon as you scroll to this exact position (the full skills grid view), ALL skill blocks fly in together from outside the screen and lock into their exact positions.
+          - When scrolling away / out of viewport, all blocks disperse back out of the screen.
         */}
         <motion.div 
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5"
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: false, amount: 0.1 }}
+          viewport={{ once: false, amount: 0.25, margin: "-50px" }}
         >
           {filteredSkills.map((skill, index) => {
             const dir = getFlyDirection(index);
