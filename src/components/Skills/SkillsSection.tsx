@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { SKILLS_PILLS, SKILL_CATEGORIES } from '../../data/skills';
 import { TechIcon } from './TechIcon';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -36,14 +36,14 @@ export const SkillsSection: React.FC = () => {
     }
   };
 
-  // Coordinated container animation variants: when section enters viewport, ALL children assemble together
+  // Coordinated container animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.035,
-        delayChildren: 0.05
+        staggerChildren: 0.025,
+        delayChildren: 0.03
       }
     }
   };
@@ -65,7 +65,7 @@ export const SkillsSection: React.FC = () => {
               <button
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
-                className="px-4 py-2 rounded-full text-xs font-mono tracking-wider transition-all duration-300 flex items-center space-x-2 border"
+                className="px-4 py-2 rounded-full text-xs font-mono tracking-wider transition-all duration-300 flex items-center space-x-2 border cursor-pointer"
                 style={{
                   backgroundColor: isSelected ? 'var(--accent-color)' : (isLightMode ? '#FFFFFF' : 'rgba(255, 255, 255, 0.04)'),
                   color: isSelected ? (isLightMode ? '#FFFFFF' : '#000000') : 'var(--text-secondary)',
@@ -90,88 +90,92 @@ export const SkillsSection: React.FC = () => {
 
         {/* 
           COORDINATED SCATTER & ASSEMBLE ANIMATION:
-          - As soon as you scroll to this exact position (the full skills grid view), ALL skill blocks fly in together from outside the screen and lock into their exact positions.
-          - When scrolling away / out of viewport, all blocks disperse back out of the screen.
+          - Uses `key={selectedCategory}` so when switching categories while standing still, cards immediately assemble into view without needing any scroll action!
+          - Scrolling away / out of viewport disperses them outward, and scrolling back into view re-assembles them from off-screen.
         */}
-        <motion.div 
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5"
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: false, amount: 0.25, margin: "-50px" }}
-        >
-          {filteredSkills.map((skill, index) => {
-            const dir = getFlyDirection(index);
-            const cardVariants = {
-              hidden: {
-                opacity: 0,
-                x: dir.x,
-                y: dir.y,
-                rotate: dir.rotate,
-                scale: dir.scale
-              },
-              visible: {
-                opacity: 1,
-                x: 0,
-                y: 0,
-                rotate: 0,
-                scale: 1,
-                transition: {
-                  type: 'spring',
-                  damping: 22,
-                  stiffness: 140,
-                  mass: 0.6
+        <AnimatePresence mode="wait">
+          <motion.div 
+            key={selectedCategory}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            whileInView="visible"
+            viewport={{ once: false, amount: 0.15 }}
+          >
+            {filteredSkills.map((skill, index) => {
+              const dir = getFlyDirection(index);
+              const cardVariants = {
+                hidden: {
+                  opacity: 0,
+                  x: dir.x,
+                  y: dir.y,
+                  rotate: dir.rotate,
+                  scale: dir.scale
+                },
+                visible: {
+                  opacity: 1,
+                  x: 0,
+                  y: 0,
+                  rotate: 0,
+                  scale: 1,
+                  transition: {
+                    type: 'spring',
+                    damping: 22,
+                    stiffness: 150,
+                    mass: 0.6
+                  }
                 }
-              }
-            };
+              };
 
-            return (
-              <motion.div
-                key={skill.name}
-                variants={cardVariants}
-                whileHover={{ 
-                  scale: 1.035, 
-                  borderColor: 'var(--accent-color)',
-                  boxShadow: '0 12px 28px -5px var(--accent-glow)',
-                  transition: { duration: 0.2 }
-                }}
-                className="relative px-5 py-4 rounded-2xl sm:rounded-[22px] border transition-colors duration-300 flex items-center space-x-4 group cursor-pointer backdrop-blur-md shadow-md will-change-transform"
-                style={{
-                  backgroundColor: isLightMode ? '#FFFFFF' : 'rgba(20, 24, 22, 0.85)',
-                  borderColor: 'var(--bg-card-border)'
-                }}
-              >
-                {/* Left: Icon container */}
-                <div 
-                  className="shrink-0 w-11 h-11 rounded-xl border flex items-center justify-center transition-colors shadow-sm"
+              return (
+                <motion.div
+                  key={skill.name}
+                  variants={cardVariants}
+                  whileHover={{ 
+                    scale: 1.035, 
+                    borderColor: 'var(--accent-color)',
+                    boxShadow: '0 12px 28px -5px var(--accent-glow)',
+                    transition: { duration: 0.2 }
+                  }}
+                  className="relative px-5 py-4 rounded-2xl sm:rounded-[22px] border transition-colors duration-300 flex items-center space-x-4 group cursor-pointer backdrop-blur-md shadow-md will-change-transform"
                   style={{
-                    backgroundColor: isLightMode ? '#F0F4F2' : 'rgba(255, 255, 255, 0.05)',
-                    borderColor: isLightMode ? 'rgba(0,0,0,0.08)' : 'rgba(255, 255, 255, 0.1)',
-                    color: 'var(--accent-color)'
+                    backgroundColor: isLightMode ? '#FFFFFF' : 'rgba(20, 24, 22, 0.85)',
+                    borderColor: 'var(--bg-card-border)'
                   }}
                 >
-                  <TechIcon type={skill.iconType} className="w-5 h-5" />
-                </div>
+                  {/* Left: Icon container */}
+                  <div 
+                    className="shrink-0 w-11 h-11 rounded-xl border flex items-center justify-center transition-colors shadow-sm"
+                    style={{
+                      backgroundColor: isLightMode ? '#F0F4F2' : 'rgba(255, 255, 255, 0.05)',
+                      borderColor: isLightMode ? 'rgba(0,0,0,0.08)' : 'rgba(255, 255, 255, 0.1)',
+                      color: 'var(--accent-color)'
+                    }}
+                  >
+                    <TechIcon type={skill.iconType} className="w-5 h-5" />
+                  </div>
 
-                {/* Right: Title & Sublabel with WCAG AAA Contrast */}
-                <div className="flex flex-col justify-center min-w-0">
-                  <span 
-                    className="font-sans font-bold text-sm sm:text-base tracking-tight truncate transition-colors"
-                    style={{ color: 'var(--text-primary)' }}
-                  >
-                    {skill.name}
-                  </span>
-                  <span 
-                    className="font-mono text-[9.5px] sm:text-[10px] uppercase tracking-wider truncate transition-colors font-medium mt-0.5"
-                    style={{ color: 'var(--text-muted)' }}
-                  >
-                    {skill.sublabel}
-                  </span>
-                </div>
-              </motion.div>
-            );
-          })}
-        </motion.div>
+                  {/* Right: Title & Sublabel with WCAG AAA Contrast */}
+                  <div className="flex flex-col justify-center min-w-0">
+                    <span 
+                      className="font-sans font-bold text-sm sm:text-base tracking-tight truncate transition-colors"
+                      style={{ color: 'var(--text-primary)' }}
+                    >
+                      {skill.name}
+                    </span>
+                    <span 
+                      className="font-mono text-[9.5px] sm:text-[10px] uppercase tracking-wider truncate transition-colors font-medium mt-0.5"
+                      style={{ color: 'var(--text-muted)' }}
+                    >
+                      {skill.sublabel}
+                    </span>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </motion.div>
+        </AnimatePresence>
       </div>
     </section>
   );
