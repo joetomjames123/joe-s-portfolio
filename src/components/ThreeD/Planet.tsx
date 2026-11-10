@@ -22,8 +22,6 @@ export const Planet: React.FC<PlanetProps> = ({
   const moonRef2 = useRef<THREE.Group>(null);
   const moonRef3 = useRef<THREE.Group>(null);
 
-  // Scaled down geometries so the outermost ring (max radius 2.2) and moons (max radius 2.45)
-  // fit completely within the scene with zero edge clipping
   const wireframeGeo = useMemo(() => new THREE.IcosahedronGeometry(1.22, 5), []);
   const coreGeo = useMemo(() => new THREE.SphereGeometry(1.2, 64, 64), []);
 
@@ -68,24 +66,23 @@ export const Planet: React.FC<PlanetProps> = ({
 
   return (
     <Float speed={1.5} rotationIntensity={0.15} floatIntensity={0.3}>
-      {/* Scaled and centered group */}
       <group ref={planetGroupRef} rotation={[0.25, 0.15, -0.15]} scale={0.92}>
         
-        {/* 1. SOLID PLANET CORE */}
+        {/* 1. SOLID PLANET CORE (Harmonized with theme light/dark) */}
         <mesh ref={planetMeshRef} geometry={coreGeo}>
           <meshStandardMaterial
-            color={isLightMode ? '#1E1B4B' : '#0B0D13'}
-            roughness={0.4}
-            metalness={0.7}
+            color={isLightMode ? '#F1F5F9' : '#0B0D13'}
+            roughness={isLightMode ? 0.2 : 0.4}
+            metalness={isLightMode ? 0.2 : 0.7}
           />
         </mesh>
 
-        {/* 2. DIGITAL NEURAL TOPOGRAPHIC WIREFRAME */}
+        {/* 2. DIGITAL NEURAL TOPOGRAPHIC WIREFRAME (Full theme accent) */}
         <lineSegments geometry={new THREE.WireframeGeometry(wireframeGeo)}>
           <lineBasicMaterial
             color={accentColor}
             transparent
-            opacity={isLightMode ? 0.35 : 0.55}
+            opacity={isLightMode ? 0.55 : 0.65}
             linewidth={1}
           />
         </lineSegments>
@@ -96,24 +93,24 @@ export const Planet: React.FC<PlanetProps> = ({
           <meshStandardMaterial
             color={accentColor}
             emissive={accentColor}
-            emissiveIntensity={isLightMode ? 0.4 : 0.75}
+            emissiveIntensity={isLightMode ? 0.6 : 0.85}
             transparent
-            opacity={0.18}
+            opacity={0.25}
             roughness={0.1}
             side={THREE.BackSide}
           />
         </mesh>
 
-        {/* 4. PLANETARY RING SYSTEM (Nested high-visibility Rings) */}
+        {/* 4. PLANETARY RING SYSTEM (Dynamically matched with theme accent) */}
         {/* Wide Semi-transparent Ring 1 */}
         <mesh ref={ringRef1} rotation={[Math.PI / 2.2, 0.1, 0]}>
           <ringGeometry args={[1.52, 2.12, 128]} />
           <meshStandardMaterial
             color={accentColor}
             emissive={accentColor}
-            emissiveIntensity={0.6}
+            emissiveIntensity={0.8}
             transparent
-            opacity={0.5}
+            opacity={isLightMode ? 0.6 : 0.55}
             side={THREE.DoubleSide}
           />
         </mesh>
@@ -122,9 +119,9 @@ export const Planet: React.FC<PlanetProps> = ({
         <mesh ref={ringRef2} rotation={[Math.PI / 2.2, 0.1, 0]}>
           <ringGeometry args={[1.70, 1.88, 128]} />
           <meshStandardMaterial
-            color="#FFFFFF"
-            emissive="#FFFFFF"
-            emissiveIntensity={1.0}
+            color={isLightMode ? '#0F172A' : '#FFFFFF'}
+            emissive={isLightMode ? accentColor : '#FFFFFF'}
+            emissiveIntensity={isLightMode ? 0.6 : 1.0}
             transparent
             opacity={0.85}
             side={THREE.DoubleSide}
@@ -135,11 +132,11 @@ export const Planet: React.FC<PlanetProps> = ({
         <mesh ref={ringRef3} rotation={[Math.PI / 2.2, 0.1, 0]}>
           <ringGeometry args={[2.14, 2.24, 128]} />
           <meshStandardMaterial
-            color="#A3E635"
-            emissive="#A3E635"
-            emissiveIntensity={0.8}
+            color={accentColor}
+            emissive={accentColor}
+            emissiveIntensity={0.9}
             transparent
-            opacity={0.65}
+            opacity={0.7}
             side={THREE.DoubleSide}
           />
         </mesh>
@@ -148,52 +145,52 @@ export const Planet: React.FC<PlanetProps> = ({
         <mesh rotation={[Math.PI / 2.2, 0.1, 0]}>
           <torusGeometry args={[2.35, 0.012, 16, 128]} />
           <meshStandardMaterial
-            color="#38BDF8"
-            emissive="#38BDF8"
-            emissiveIntensity={0.8}
+            color={accentColor}
+            emissive={accentColor}
+            emissiveIntensity={0.9}
             transparent
-            opacity={0.6}
+            opacity={0.7}
           />
         </mesh>
 
         {/* 5. ORBITING MOONS / SATELLITES */}
-        {/* Moon 1 (Violet) */}
+        {/* Moon 1 (Primary Theme Accent Moon) */}
         <group ref={moonRef1}>
           <group position={[2.45, 0.3, 0]}>
             <Sphere args={[0.13, 24, 24]}>
               <meshStandardMaterial
-                color="#8B5CF6"
-                emissive="#8B5CF6"
-                emissiveIntensity={1}
+                color={accentColor}
+                emissive={accentColor}
+                emissiveIntensity={1.5}
                 roughness={0.2}
               />
             </Sphere>
-            <pointLight distance={2.5} intensity={1.8} color="#8B5CF6" />
+            <pointLight distance={3} intensity={2.2} color={accentColor} />
           </group>
         </group>
 
-        {/* Moon 2 (Emerald / Lime) */}
+        {/* Moon 2 (Harmonized Theme Satellite) */}
         <group ref={moonRef2}>
           <group position={[-2.35, -0.45, 0]}>
             <Sphere args={[0.1, 24, 24]}>
               <meshStandardMaterial
-                color="#A3E635"
-                emissive="#A3E635"
-                emissiveIntensity={1.2}
+                color={accentColor}
+                emissive={accentColor}
+                emissiveIntensity={1.4}
                 roughness={0.2}
               />
             </Sphere>
-            <pointLight distance={2.5} intensity={1.8} color="#A3E635" />
+            <pointLight distance={3} intensity={2} color={accentColor} />
           </group>
         </group>
 
-        {/* Moon 3 (White Beacon) */}
+        {/* Moon 3 (High-Contrast Beacon) */}
         <group ref={moonRef3}>
           <group position={[1.8, -1.3, 0.9]}>
             <Sphere args={[0.07, 16, 16]}>
               <meshStandardMaterial
-                color="#FFFFFF"
-                emissive="#FFFFFF"
+                color={isLightMode ? '#0F172A' : '#FFFFFF'}
+                emissive={isLightMode ? accentColor : '#FFFFFF'}
                 emissiveIntensity={1.5}
               />
             </Sphere>

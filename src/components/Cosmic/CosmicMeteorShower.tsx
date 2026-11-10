@@ -9,7 +9,7 @@ interface CosmicStar {
   baseOpacity: number;
   blinkSpeed: number;
   phase: number;
-  color: string;
+  isAccent: boolean;
 }
 
 export const CosmicMeteorShower: React.FC = () => {
@@ -38,7 +38,7 @@ export const CosmicMeteorShower: React.FC = () => {
         baseOpacity: Math.random() * 0.5 + 0.35,
         blinkSpeed: Math.random() * 0.02 + 0.005,
         phase: Math.random() * Math.PI * 2,
-        color: Math.random() > 0.35 ? '#FFFFFF' : (activeAccentHex || '#8B5CF6')
+        isAccent: Math.random() > 0.45
       });
     }
 
@@ -71,14 +71,16 @@ export const CosmicMeteorShower: React.FC = () => {
       const centerY = height / 2;
 
       // Zoom factor: scrolling down zooms in, scrolling up zooms out
-      // (currentScroll * 0.8 smoothly moves stars toward the camera)
       const scrollOffset = currentScroll * 0.75;
+
+      // Dynamic colors based on active theme
+      const neutralStarColor = isLightMode ? '#0F172A' : '#FFFFFF';
+      const accentStarColor = activeAccentHex || (isLightMode ? '#7C3AED' : '#8B5CF6');
 
       for (let i = 0; i < stars.length; i++) {
         const star = stars[i];
 
         // Star's dynamic Z depth based on scroll
-        // Using modulo arithmetic so stars seamlessly warp and cycle when scrolling infinitely
         const cycle = 900;
         let adjustedZ = ((star.z - scrollOffset) % cycle + cycle) % cycle + 50;
 
@@ -96,14 +98,14 @@ export const CosmicMeteorShower: React.FC = () => {
         const twinkle = Math.sin(time * star.blinkSpeed * 100 + star.phase);
         const currentOpacity = star.baseOpacity + twinkle * 0.25;
 
-        // Stars closer to viewer (smaller adjustedZ / higher scale) appear brighter and larger
+        // Stars closer to viewer appear brighter and larger
         const depthAlpha = Math.min(1, Math.max(0.1, 1 - adjustedZ / 950));
-        const finalAlpha = Math.max(0.08, Math.min(0.95, currentOpacity * depthAlpha));
+        const finalAlpha = Math.max(0.12, Math.min(0.95, currentOpacity * depthAlpha));
 
         ctx.globalAlpha = finalAlpha;
-        ctx.fillStyle = star.color;
+        ctx.fillStyle = star.isAccent ? accentStarColor : neutralStarColor;
         ctx.beginPath();
-        ctx.arc(projectedX, projectedY, Math.max(0.5, star.radius * scale * 2.2), 0, Math.PI * 2);
+        ctx.arc(projectedX, projectedY, Math.max(0.6, star.radius * scale * 2.2), 0, Math.PI * 2);
         ctx.fill();
       }
 
@@ -125,7 +127,7 @@ export const CosmicMeteorShower: React.FC = () => {
       ref={canvasRef}
       className="fixed inset-0 pointer-events-none z-0 w-full h-full transform-gpu"
       style={{
-        opacity: isLightMode ? 0.35 : 0.92
+        opacity: isLightMode ? 0.45 : 0.95
       }}
     />
   );

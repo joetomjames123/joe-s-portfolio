@@ -28,7 +28,13 @@ export const App: React.FC = () => {
       {/* Butter-smooth cinematic welcome animation overlay */}
       <CinematicIntro triggerReplay={replayIntroCount} />
 
-      <div className="relative min-h-screen bg-obsidian-900 text-typography-primary selection:bg-emerald-accent selection:text-black font-sans transition-colors duration-500">
+      <div 
+        className="relative min-h-screen font-sans transition-colors duration-500"
+        style={{
+          backgroundColor: 'var(--bg-primary)',
+          color: 'var(--text-primary)'
+        }}
+      >
         {/* Whole-website Cosmic 3D Starfield with smooth Zoom-In / Zoom-Out on scroll */}
         <CosmicMeteorShower />
 
