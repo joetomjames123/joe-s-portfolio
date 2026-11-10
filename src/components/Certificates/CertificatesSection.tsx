@@ -108,8 +108,9 @@ export const CertificatesSection: React.FC = () => {
 
         {/* 
           COSMIC WARP & 3D VERTICAL ROTATION SCROLL ANIMATION:
-          - Cards start deep in infinity (tiny scale 0.05, z: -1000px, 90deg vertical roll, blur, 0 opacity).
-          - As the user scrolls into view, each card rolls forward in 3D vertically (rotateX: 0) and flies from depth to full scale (scale: 1, z: 0).
+          - Cards start deep in infinity (tiny scale 0.05, z: -900px, 95deg vertical roll, blur, 0 opacity).
+          - Trigger strictly when the user reaches the certificates section (margin: "0px 0px -15% 0px", amount: 0.35).
+          - As the user scrolls into view and reaches the section, cards roll forward in 3D vertically (rotateX: 0) and fly from depth to full scale (scale: 1, z: 0).
           - once: true ensures they lock and settle permanently without dispersing when scrolling back up.
         */}
         <AnimatePresence mode="wait">
@@ -120,7 +121,7 @@ export const CertificatesSection: React.FC = () => {
             variants={containerVariants}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, amount: 0.1 }}
+            viewport={{ once: true, amount: 0.35, margin: "0px 0px -15% 0px" }}
           >
             {filteredCerts.map((cert, index) => {
               const cardVariants = {
