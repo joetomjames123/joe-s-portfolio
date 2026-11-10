@@ -5,11 +5,7 @@ import { Hero3DScene } from './Hero3DScene';
 import { HeroMeteors } from './HeroMeteors';
 import { PROFILE_DATA } from '../../data/profile';
 
-interface HeroSectionProps {
-  onReplayIntro?: () => void;
-}
-
-export const HeroSection: React.FC<HeroSectionProps> = ({ onReplayIntro }) => {
+export const HeroSection: React.FC = () => {
   return (
     <section 
       id="home" 
@@ -27,25 +23,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onReplayIntro }) => {
         className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] rounded-full blur-[140px] pointer-events-none -z-10 opacity-30 transition-all duration-700" 
         style={{ backgroundColor: 'var(--accent-glow)' }}
       />
-
-      {/* Settled Glowing White Ball (Only visible on Home Section, scrolls away with Home) */}
-      {onReplayIntro && (
-        <div className="absolute top-28 right-6 sm:right-12 z-20">
-          <button
-            onClick={onReplayIntro}
-            aria-label="Replay Cinematic Welcome Animation"
-            title="Replay Welcome Intro"
-            className="group relative p-2.5 rounded-full bg-black/60 border border-white/20 hover:border-white transition-all duration-300 flex items-center justify-center cursor-pointer shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.95)] backdrop-blur-md"
-          >
-            <span className="w-3.5 h-3.5 rounded-full bg-white shadow-[0_0_12px_4px_rgba(255,255,255,1)] group-hover:scale-125 transition-transform duration-300 animate-pulse" />
-            
-            {/* Tooltip cue on hover */}
-            <span className="absolute right-full mr-3 px-2.5 py-1 rounded-md bg-black/90 border border-white/15 text-[10px] font-mono tracking-wider text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none shadow-xl">
-              REPLAY INTRO
-            </span>
-          </button>
-        </div>
-      )}
 
       <div className="max-w-7xl mx-auto px-6 sm:px-8 w-full grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-6 items-center pointer-events-none relative z-10">
         {/* Left Column: Editorial & Cinematic Typography */}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { Navigation } from './components/Navigation/Navigation';
 import { HeroSection } from './components/Hero/HeroSection';
@@ -13,21 +13,11 @@ import { ContactSection } from './components/Contact/ContactSection';
 import { Footer } from './components/Footer';
 import { ThemeCustomizer } from './components/Theme/ThemeCustomizer';
 import { CustomCursor } from './components/Cursor/CustomCursor';
-import { CinematicIntro } from './components/Intro/CinematicIntro';
 import { CosmicMeteorShower } from './components/Cosmic/CosmicMeteorShower';
 
 export const App: React.FC = () => {
-  const [replayIntroCount, setReplayIntroCount] = useState<number>(0);
-
-  const handleReplayIntro = () => {
-    setReplayIntroCount((prev) => prev + 1);
-  };
-
   return (
     <ThemeProvider>
-      {/* Butter-smooth cinematic welcome animation overlay */}
-      <CinematicIntro triggerReplay={replayIntroCount} />
-
       <div 
         className="relative min-h-screen font-sans transition-colors duration-500"
         style={{
@@ -44,7 +34,7 @@ export const App: React.FC = () => {
         {/* Main Content Sections */}
         <main>
           {/* Hero Section with Interactive 3D Planet and Celestial Orbits */}
-          <HeroSection onReplayIntro={handleReplayIntro} />
+          <HeroSection />
 
           {/* About Section with Blank Luxury Frame & Timeline */}
           <AboutSection />
