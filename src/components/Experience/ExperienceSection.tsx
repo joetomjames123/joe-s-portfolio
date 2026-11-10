@@ -27,7 +27,6 @@ export const ExperienceSection: React.FC = () => {
         >
           <div>
             <div className="flex items-center space-x-2 text-xs font-mono tracking-widest uppercase mb-2" style={{ color: 'var(--accent-color)' }}>
-              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: 'var(--accent-color)' }} />
               <span>EXPERIENCE</span>
             </div>
             <h2 

@@ -143,7 +143,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onReplayIntro }) => {
       {/* Bottom Scroll Prompt */}
       <div className="max-w-7xl mx-auto px-6 sm:px-8 w-full mt-12 flex items-center justify-between relative z-10" style={{ color: 'var(--text-muted)' }}>
         <div className="flex items-center space-x-3 text-xs font-mono">
-          <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: 'var(--accent-color)' }} />
           <span>PORTFOLIO DIRECTORY 2026/2027</span>
         </div>
         <a 

@@ -31,7 +31,6 @@ export const SkillsSection: React.FC = () => {
         <div className="flex w-[200%] animate-marquee space-x-8">
           {[...SKILLS_PILLS, ...SKILLS_PILLS].map((s, idx) => (
             <div key={idx} className="flex items-center space-x-3 shrink-0">
-              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: 'var(--accent-color)' }} />
               <span 
                 className="font-mono text-xs uppercase tracking-widest transition-colors font-medium hover:opacity-100"
                 style={{ color: 'var(--text-secondary)' }}
@@ -48,7 +47,6 @@ export const SkillsSection: React.FC = () => {
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 pb-6 border-b" style={{ borderColor: 'var(--bg-card-border)' }}>
           <div>
             <div className="flex items-center space-x-2 text-xs font-mono tracking-widest uppercase mb-2" style={{ color: 'var(--accent-color)' }}>
-              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: 'var(--accent-color)' }} />
               <span>SKILLS & TECHNOLOGIES</span>
             </div>
             <h2 className="font-serif text-4xl sm:text-6xl tracking-tight" style={{ color: 'var(--text-primary)' }}>

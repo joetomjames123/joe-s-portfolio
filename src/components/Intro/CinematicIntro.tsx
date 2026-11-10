@@ -123,7 +123,6 @@ export const CinematicIntro: React.FC<IntroAnimationProps> = ({
                     transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                     className="font-mono text-xs sm:text-sm tracking-[0.45em] uppercase text-emerald-300/90 font-medium drop-shadow-[0_0_18px_rgba(52,211,153,0.5)] flex items-center space-x-2"
                   >
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block mr-2 animate-ping" />
                     <span>WELCOME TO</span>
                   </motion.div>
                 )}

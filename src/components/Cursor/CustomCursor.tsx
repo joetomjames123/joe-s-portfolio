@@ -47,27 +47,16 @@ export const CustomCursor: React.FC = () => {
 
   return (
     <>
-      {/* Primary Dot */}
+      {/* Subtle Focus Ring Only (No circular colored dots) */}
       <motion.div
-        className="fixed top-0 left-0 w-2.5 h-2.5 rounded-full bg-emerald-accent pointer-events-none z-[9999] mix-blend-difference"
+        className="fixed top-0 left-0 rounded-lg border border-emerald-accent/40 pointer-events-none z-[9998] flex items-center justify-center font-mono text-[9px] text-emerald-accent"
         animate={{
-          x: mousePosition.x - 5,
-          y: mousePosition.y - 5,
-          scale: isHovered ? 1.8 : 1
-        }}
-        transition={{ type: 'spring', damping: 28, stiffness: 400, mass: 0.1 }}
-      />
-
-      {/* Trailing Luxury Aura Ring */}
-      <motion.div
-        className="fixed top-0 left-0 rounded-full border border-emerald-accent/60 pointer-events-none z-[9998] flex items-center justify-center font-mono text-[9px] text-emerald-accent"
-        animate={{
-          x: mousePosition.x - (isHovered ? 24 : 16),
-          y: mousePosition.y - (isHovered ? 24 : 16),
-          width: isHovered ? 48 : 32,
-          height: isHovered ? 48 : 32,
-          backgroundColor: isHovered ? 'rgba(0, 201, 135, 0.08)' : 'rgba(0, 0, 0, 0)',
-          borderColor: isHovered ? 'var(--accent-color)' : 'rgba(199, 208, 204, 0.3)'
+          x: mousePosition.x - (isHovered ? 20 : 12),
+          y: mousePosition.y - (isHovered ? 20 : 12),
+          width: isHovered ? 40 : 24,
+          height: isHovered ? 40 : 24,
+          backgroundColor: isHovered ? 'rgba(0, 201, 135, 0.05)' : 'rgba(0, 0, 0, 0)',
+          borderColor: isHovered ? 'var(--accent-color)' : 'rgba(199, 208, 204, 0.2)'
         }}
         transition={{ type: 'spring', damping: 24, stiffness: 220, mass: 0.2 }}
       >

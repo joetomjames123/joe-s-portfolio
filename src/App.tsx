@@ -38,9 +38,6 @@ export const App: React.FC = () => {
         {/* Whole-website Cosmic 3D Starfield with smooth Zoom-In / Zoom-Out on scroll */}
         <CosmicMeteorShower />
 
-        {/* Custom Contextual Cursor */}
-        <CustomCursor />
-
         {/* Global Navigation */}
         <Navigation />
 

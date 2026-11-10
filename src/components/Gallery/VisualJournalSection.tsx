@@ -58,7 +58,6 @@ export const VisualJournalSection: React.FC = () => {
             </p>
 
             <div className="flex items-center space-x-2 pt-2">
-              <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: 'var(--accent-color)' }} />
               <span 
                 className="font-mono text-xs uppercase tracking-widest font-semibold"
                 style={{ color: 'var(--accent-color)' }}
