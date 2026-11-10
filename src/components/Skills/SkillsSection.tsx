@@ -12,27 +12,39 @@ export const SkillsSection: React.FC = () => {
     ? SKILLS_PILLS
     : SKILLS_PILLS.filter((s) => s.category === selectedCategory);
 
-  // Diverse off-screen entry & exit trajectory vectors for each card
+  // Diverse off-screen trajectory vectors for each card
   const getFlyDirection = (index: number) => {
     const pattern = index % 8;
     switch (pattern) {
       case 0:
-        return { x: -350, y: -250, rotate: -25, scale: 0.6 }; // Top-Left
+        return { x: -450, y: -250, rotate: -25, scale: 0.6 }; // Top-Left
       case 1:
-        return { x: 0, y: -350, rotate: 15, scale: 0.6 };    // Top-Center
+        return { x: 0, y: -380, rotate: 15, scale: 0.6 };    // Top-Center
       case 2:
-        return { x: 350, y: -250, rotate: 25, scale: 0.6 };  // Top-Right
+        return { x: 450, y: -250, rotate: 25, scale: 0.6 };  // Top-Right
       case 3:
-        return { x: 400, y: 0, rotate: -18, scale: 0.6 };    // Far-Right
+        return { x: 500, y: 0, rotate: -18, scale: 0.6 };    // Far-Right
       case 4:
-        return { x: 350, y: 300, rotate: 20, scale: 0.6 };   // Bottom-Right
+        return { x: 450, y: 350, rotate: 20, scale: 0.6 };   // Bottom-Right
       case 5:
-        return { x: 0, y: 350, rotate: -15, scale: 0.6 };    // Bottom-Center
+        return { x: 0, y: 380, rotate: -15, scale: 0.6 };    // Bottom-Center
       case 6:
-        return { x: -350, y: 300, rotate: -20, scale: 0.6 }; // Bottom-Left
+        return { x: -450, y: 350, rotate: -20, scale: 0.6 }; // Bottom-Left
       case 7:
       default:
-        return { x: -400, y: 0, rotate: 18, scale: 0.6 };    // Far-Left
+        return { x: -500, y: 0, rotate: 18, scale: 0.6 };    // Far-Left
+    }
+  };
+
+  // Coordinated container animation variants: when section enters viewport, ALL children assemble together
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.035,
+        delayChildren: 0.05
+      }
     }
   };
 
@@ -114,38 +126,46 @@ export const SkillsSection: React.FC = () => {
         </div>
 
         {/* 
-          SCROLL-DRIVEN SCATTER & ASSEMBLE ANIMATION:
-          - Scrolling into section: cards fly in from diverse off-screen angles and lock into their grid position with spring physics.
-          - Scrolling away / out of viewport: cards disperse back out of the screen.
+          COORDINATED SCATTER & ASSEMBLE ANIMATION:
+          - As soon as the skills view comes into screen, ALL skill blocks fly in together from outside the screen and lock into their exact grid positions.
+          - When scrolling away / out of viewport, all blocks scatter back out of the screen.
         */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+        <motion.div 
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: false, amount: 0.1 }}
+        >
           {filteredSkills.map((skill, index) => {
             const dir = getFlyDirection(index);
+            const cardVariants = {
+              hidden: {
+                opacity: 0,
+                x: dir.x,
+                y: dir.y,
+                rotate: dir.rotate,
+                scale: dir.scale
+              },
+              visible: {
+                opacity: 1,
+                x: 0,
+                y: 0,
+                rotate: 0,
+                scale: 1,
+                transition: {
+                  type: 'spring',
+                  damping: 22,
+                  stiffness: 140,
+                  mass: 0.6
+                }
+              }
+            };
+
             return (
               <motion.div
                 key={skill.name}
-                initial={{
-                  opacity: 0,
-                  x: dir.x,
-                  y: dir.y,
-                  rotate: dir.rotate,
-                  scale: dir.scale
-                }}
-                whileInView={{
-                  opacity: 1,
-                  x: 0,
-                  y: 0,
-                  rotate: 0,
-                  scale: 1
-                }}
-                viewport={{ once: false, amount: 0.15 }}
-                transition={{
-                  type: 'spring',
-                  damping: 24,
-                  stiffness: 170,
-                  mass: 0.7,
-                  delay: (index % 4) * 0.04
-                }}
+                variants={cardVariants}
                 whileHover={{ 
                   scale: 1.035, 
                   borderColor: 'var(--accent-color)',
@@ -188,7 +208,7 @@ export const SkillsSection: React.FC = () => {
               </motion.div>
             );
           })}
-        </div>
+        </motion.div>
       </div>
     </section>
   );
