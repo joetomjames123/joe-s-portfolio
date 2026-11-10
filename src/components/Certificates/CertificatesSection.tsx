@@ -54,93 +54,6 @@ export const CertificatesSection: React.FC = () => {
     }
   };
 
-  // If already completed in this session, render directly as the clean responsive 3-column grid without pinning
-  if (hasCompletedSequence) {
-    return (
-      <section 
-        id="certificates" 
-        className="py-24 relative border-t transition-colors duration-500 overflow-hidden"
-        style={{
-          backgroundColor: 'transparent',
-          borderColor: 'var(--bg-card-border)'
-        }}
-      >
-        <div className="max-w-7xl mx-auto px-6 sm:px-8">
-          {/* Section Header */}
-          <div 
-            className="flex flex-col md:flex-row md:items-end justify-between mb-12 pb-4 border-b transition-colors"
-            style={{ borderColor: 'var(--bg-card-border)' }}
-          >
-            <div>
-              <div className="flex items-center space-x-3 mb-2">
-                <span className="font-mono text-xs font-bold" style={{ color: 'var(--accent-color)' }}>05</span>
-                <span className="w-8 h-[1px]" style={{ backgroundColor: 'var(--bg-card-border)' }} />
-                <span className="font-mono text-xs uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
-                  CERTIFICATIONS
-                </span>
-              </div>
-              <h2 
-                className="font-sans text-3xl sm:text-5xl font-semibold tracking-tight transition-colors"
-                style={{ color: 'var(--text-primary)' }}
-              >
-                Certificates & Licenses
-              </h2>
-            </div>
-
-            {/* Category Filter Pills */}
-            <div className="flex flex-wrap gap-2 mt-4 md:mt-0">
-              {categories.map((cat) => {
-                const isSelected = activeCategory === cat.id;
-                return (
-                  <button
-                    key={cat.id}
-                    onClick={() => setActiveCategory(cat.id)}
-                    className="px-3.5 py-1.5 rounded-full text-xs font-mono transition-all duration-200 border cursor-pointer"
-                    style={{
-                      backgroundColor: isSelected 
-                        ? 'var(--text-primary)' 
-                        : (isLightMode ? '#FFFFFF' : 'rgba(255, 255, 255, 0.05)'),
-                      color: isSelected 
-                        ? (isLightMode ? '#FFFFFF' : '#000000') 
-                        : 'var(--text-secondary)',
-                      borderColor: isSelected 
-                        ? 'var(--text-primary)' 
-                        : 'var(--bg-card-border)',
-                      fontWeight: isSelected ? 600 : 400
-                    }}
-                  >
-                    {cat.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Clean 3-Column Responsive Grid in Full Size */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredCerts.map((cert) => (
-              <CertificateCard
-                key={cert.id}
-                cert={cert}
-                isLightMode={isLightMode}
-                getTagFromCategory={getTagFromCategory}
-                onSelect={() => setLightboxCert(cert)}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Modal Lightbox */}
-        <CertificateLightbox 
-          cert={lightboxCert} 
-          onClose={() => setLightboxCert(null)} 
-          getTagFromCategory={getTagFromCategory}
-        />
-      </section>
-    );
-  }
-
-  // Active Pinning Track: Screen freezes in place while user scrolls through the 350vh track
   return (
     <section 
       id="certificates" 
@@ -149,96 +62,107 @@ export const CertificatesSection: React.FC = () => {
       style={{
         backgroundColor: 'transparent',
         borderColor: 'var(--bg-card-border)',
-        height: '350vh'
+        // When settled, section shrinks to natural height; during scroll it provides 340vh travel
+        height: hasCompletedSequence ? 'auto' : '340vh',
+        paddingBottom: hasCompletedSequence ? '6rem' : 0
       }}
     >
-      {/* Pinned Sticky Viewport: Fixed on screen during animation */}
-      <div className="sticky top-0 h-screen w-full flex flex-col justify-start overflow-hidden pt-10 pb-6">
+      {/* 
+        Sticky Viewport when animating; standard container when settled.
+        Both states use the exact same grid container dimensions (max-w-7xl, gap-6 sm:gap-8, w-full).
+      */}
+      <div className={hasCompletedSequence 
+        ? "max-w-7xl mx-auto px-6 sm:px-8 w-full pt-16 sm:pt-20"
+        : "sticky top-0 h-screen w-full flex flex-col justify-start overflow-hidden pt-12 pb-6 max-w-7xl mx-auto px-6 sm:px-8"
+      }>
         
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 w-full z-20">
-          {/* Section Header */}
-          <div 
-            className="flex flex-col md:flex-row md:items-end justify-between mb-4 pb-3 border-b transition-colors"
-            style={{ borderColor: 'var(--bg-card-border)' }}
-          >
-            <div>
-              <div className="flex items-center space-x-3 mb-1.5">
-                <span className="font-mono text-xs font-bold" style={{ color: 'var(--accent-color)' }}>05</span>
-                <span className="w-8 h-[1px]" style={{ backgroundColor: 'var(--bg-card-border)' }} />
-                <span className="font-mono text-xs uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
-                  CERTIFICATIONS
-                </span>
-              </div>
-              <h2 
-                className="font-sans text-2xl sm:text-4xl font-semibold tracking-tight transition-colors"
-                style={{ color: 'var(--text-primary)' }}
-              >
-                Certificates & Licenses
-              </h2>
+        {/* Section Header (Identical in both states) */}
+        <div 
+          className="flex flex-col md:flex-row md:items-end justify-between mb-8 pb-4 border-b transition-colors w-full z-20"
+          style={{ borderColor: 'var(--bg-card-border)' }}
+        >
+          <div>
+            <div className="flex items-center space-x-3 mb-2">
+              <span className="font-mono text-xs font-bold" style={{ color: 'var(--accent-color)' }}>05</span>
+              <span className="w-8 h-[1px]" style={{ backgroundColor: 'var(--bg-card-border)' }} />
+              <span className="font-mono text-xs uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
+                CERTIFICATIONS
+              </span>
             </div>
+            <h2 
+              className="font-sans text-3xl sm:text-5xl font-semibold tracking-tight transition-colors"
+              style={{ color: 'var(--text-primary)' }}
+            >
+              Certificates & Licenses
+            </h2>
+          </div>
 
-            {/* Category Filter Pills */}
-            <div className="flex flex-wrap gap-2 mt-3 md:mt-0">
-              {categories.map((cat) => {
-                const isSelected = activeCategory === cat.id;
-                return (
-                  <button
-                    key={cat.id}
-                    onClick={() => setActiveCategory(cat.id)}
-                    className="px-3.5 py-1.5 rounded-full text-xs font-mono transition-all duration-200 border cursor-pointer"
-                    style={{
-                      backgroundColor: isSelected 
-                        ? 'var(--text-primary)' 
-                        : (isLightMode ? '#FFFFFF' : 'rgba(255, 255, 255, 0.05)'),
-                      color: isSelected 
-                        ? (isLightMode ? '#FFFFFF' : '#000000') 
-                        : 'var(--text-secondary)',
-                      borderColor: isSelected 
-                        ? 'var(--text-primary)' 
-                        : 'var(--bg-card-border)',
-                      fontWeight: isSelected ? 600 : 400
-                    }}
-                  >
-                    {cat.label}
-                  </button>
-                );
-              })}
-            </div>
+          {/* Category Filter Pills */}
+          <div className="flex flex-wrap gap-2 mt-4 md:mt-0">
+            {categories.map((cat) => {
+              const isSelected = activeCategory === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setActiveCategory(cat.id)}
+                  className="px-3.5 py-1.5 rounded-full text-xs font-mono transition-all duration-200 border cursor-pointer"
+                  style={{
+                    backgroundColor: isSelected 
+                      ? 'var(--text-primary)' 
+                      : (isLightMode ? '#FFFFFF' : 'rgba(255, 255, 255, 0.05)'),
+                    color: isSelected 
+                      ? (isLightMode ? '#FFFFFF' : '#000000') 
+                      : 'var(--text-secondary)',
+                    borderColor: isSelected 
+                      ? 'var(--text-primary)' 
+                      : 'var(--bg-card-border)',
+                    fontWeight: isSelected ? 600 : 400
+                  }}
+                >
+                  {cat.label}
+                </button>
+              );
+            })}
           </div>
         </div>
 
         {/* 
-          HORIZONTAL CURVE SWEEP & 3D ROTATION ARENA:
-          - Screen is frozen while scrolling down.
-          - Cards enter one-by-one from the far left side outside the viewport (-1100px) with curved arc trajectory (x: -1100 -> center 0, y arc, rotateY: -65deg).
-          - Arrive in center and perform a horizontal 3D rotation (rotateY: 0deg -> 360deg spin).
-          - Once rotated, cards sequentially fly smoothly into their respective grid positions (1st card to slot 1, 2nd to slot 2, etc.).
-          - Once settled, cards lock into place; scrolling up will NOT reverse the animation.
+          CERTIFICATES DISPLAY:
+          - When settled: Standard responsive CSS grid.
+          - While scrolling: Pinned 3D arena where cards sweep in from left, rotate horizontally, and land in identical size.
         */}
-        <div 
-          className="relative flex-1 w-full max-w-7xl mx-auto px-6 sm:px-8 flex items-center justify-center [perspective:2000px] [transform-style:preserve-3d] mt-2"
-        >
-          {filteredCerts.map((cert, index) => {
-            return (
-              <AnimatedScrollCard
+        {hasCompletedSequence ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 w-full">
+            {filteredCerts.map((cert) => (
+              <CertificateCardContent
                 key={cert.id}
                 cert={cert}
-                index={index}
-                total={filteredCerts.length}
-                scrollYProgress={scrollYProgress}
                 isLightMode={isLightMode}
                 getTagFromCategory={getTagFromCategory}
                 onSelect={() => setLightboxCert(cert)}
               />
-            );
-          })}
-        </div>
-
-        {/* Bottom subtle guidance cue */}
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 w-full flex items-center justify-between text-[11px] font-mono text-typography-muted opacity-60 z-20">
-          <span>SCROLL DOWN TO ADVANCE HORIZONTAL 3D ROTATION & PLACEMENT</span>
-          <span>{filteredCerts.length} CERTIFICATES</span>
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div 
+            className="relative flex-1 w-full flex items-center justify-center [perspective:2000px] [transform-style:preserve-3d]"
+          >
+            {filteredCerts.map((cert, index) => {
+              return (
+                <AnimatedScrollCard
+                  key={cert.id}
+                  cert={cert}
+                  index={index}
+                  total={filteredCerts.length}
+                  scrollYProgress={scrollYProgress}
+                  isLightMode={isLightMode}
+                  getTagFromCategory={getTagFromCategory}
+                  onSelect={() => setLightboxCert(cert)}
+                />
+              );
+            })}
+          </div>
+        )}
 
       </div>
 
@@ -249,6 +173,225 @@ export const CertificatesSection: React.FC = () => {
         getTagFromCategory={getTagFromCategory}
       />
     </section>
+  );
+};
+
+// Reusable Single Source Card Content (100% Identical Dimensions & Styling Before & After Placement)
+const CertificateCardContent: React.FC<{
+  cert: CertificateItem;
+  isLightMode: boolean;
+  getTagFromCategory: (cat: string) => string;
+  onSelect: () => void;
+}> = ({ cert, isLightMode, getTagFromCategory, onSelect }) => {
+  return (
+    <motion.div
+      onClick={onSelect}
+      whileHover={{ 
+        scale: 1.02, 
+        y: -4,
+        borderColor: 'var(--accent-color)',
+        boxShadow: '0 20px 40px -10px var(--accent-glow)',
+        transition: { duration: 0.2 }
+      }}
+      className="w-full rounded-[22px] overflow-hidden border transition-colors duration-300 shadow-xl group cursor-pointer flex flex-col justify-between"
+      style={{
+        backgroundColor: isLightMode ? '#FFFFFF' : 'var(--bg-card)',
+        borderColor: 'var(--bg-card-border)'
+      }}
+    >
+      {/* Aspect Ratio 16/10 Certificate Image Container */}
+      <div 
+        className="relative aspect-[16/10] p-3 sm:p-4 flex items-center justify-center overflow-hidden border-b transition-colors bg-white"
+        style={{ borderColor: 'var(--bg-card-border)' }}
+      >
+        <img
+          src={cert.imageSrc}
+          alt={cert.title}
+          className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300 pointer-events-none"
+        />
+        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+          <div className="px-3.5 py-1.5 rounded-full bg-black/80 border border-white/20 text-white font-mono text-xs flex items-center space-x-1.5 backdrop-blur-md">
+            <ZoomIn className="w-3.5 h-3.5 text-emerald-400" />
+            <span>PREVIEW</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Card Info Body */}
+      <div 
+        className="p-4 sm:p-5 flex flex-col justify-between flex-1 space-y-3 transition-colors"
+        style={{
+          backgroundColor: isLightMode ? 'var(--bg-secondary)' : 'var(--bg-card)'
+        }}
+      >
+        <div>
+          <span className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-[#E08A56] block mb-1">
+            {getTagFromCategory(cert.category)}
+          </span>
+          <h4 
+            className="font-serif text-base sm:text-lg font-medium leading-snug group-hover:text-emerald-400 transition-colors line-clamp-1"
+            style={{ color: 'var(--text-primary)' }}
+          >
+            {cert.title}
+          </h4>
+          <p 
+            className="font-sans text-xs mt-1 line-clamp-1"
+            style={{ color: 'var(--text-secondary)' }}
+          >
+            {cert.issuer}
+          </p>
+        </div>
+
+        <div 
+          className="pt-3 border-t flex items-center justify-between transition-colors"
+          style={{ borderColor: 'var(--bg-card-border)' }}
+        >
+          <span className="font-mono text-xs" style={{ color: 'var(--text-muted)' }}>
+            {cert.issueDate || 'VERIFIED CREDENTIAL'}
+          </span>
+          <span 
+            className="font-mono text-xs flex items-center space-x-1"
+            style={{ color: 'var(--accent-color)' }}
+          >
+            <Award className="w-3.5 h-3.5" />
+            <span>VERIFIED</span>
+          </span>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+// Dynamic Animated Card inside the Pinned Scroll Track
+interface AnimatedScrollCardProps {
+  cert: CertificateItem;
+  index: number;
+  total: number;
+  scrollYProgress: any;
+  isLightMode: boolean;
+  getTagFromCategory: (cat: string) => string;
+  onSelect: () => void;
+}
+
+const AnimatedScrollCard: React.FC<AnimatedScrollCardProps> = ({
+  cert,
+  index,
+  total,
+  scrollYProgress,
+  isLightMode,
+  getTagFromCategory,
+  onSelect
+}) => {
+  // Phase 1 (0.00 to 0.38): Cards emerge one-by-one from the left side in full card size!
+  const arriveStart = (index / total) * 0.25;
+  const arriveMid = arriveStart + 0.08;
+  const arriveEnd = arriveStart + 0.14;
+
+  // Phase 2 (0.38 to 0.65): Horizontal 3D rotation (rotateY: 0deg -> 360deg) in center
+  const rotateStart = 0.38;
+  const rotateEnd = 0.65;
+
+  // Phase 3 (0.65 to 0.88): Sequential placement directly to target 3x3 positions with scale: 1.0
+  const placeStart = 0.65 + (index / total) * 0.20;
+  const placeEnd = Math.min(0.88, placeStart + 0.07);
+
+  // Exact target 3x3 grid coordinates matching the natural 3-column layout
+  const cols = 3;
+  const colIndex = index % cols;       // 0, 1, 2 -> Left, Center, Right
+  const rowIndex = Math.floor(index / cols); // 0, 1, 2 -> Row 0, Row 1, Row 2
+
+  // Exact pixel positions corresponding to 380px columns with 32px gap
+  const targetX = (colIndex - 1) * 400; // -400px, 0px, +400px
+  const targetY = (rowIndex - 1) * 190 + 20; // -170px, +20px, +210px
+
+  // Staggered depth stack while in center
+  const depthStackZ = -index * 120;
+
+  // X position:
+  // Far Left (-1100px) -> Center (0px) -> Target Grid X
+  const x = useTransform(
+    scrollYProgress,
+    [0, arriveStart, arriveMid, arriveEnd, rotateStart, rotateEnd, placeStart, placeEnd, 1],
+    [-1100, -1100, -350, 0, 0, 0, targetX, targetX, targetX]
+  );
+
+  // Y position:
+  // Curved sweep arc -> Center (+20px) -> Target Grid Y
+  const y = useTransform(
+    scrollYProgress,
+    [0, arriveStart, arriveMid, arriveEnd, rotateStart, rotateEnd, placeStart, placeEnd, 1],
+    [-60, -60, 80, 20, 20, 20, targetY, targetY, targetY]
+  );
+
+  // Z position:
+  // Curves into foreground stack -> levels to 0
+  const z = useTransform(
+    scrollYProgress,
+    [0, arriveStart, arriveEnd, rotateStart, rotateEnd, placeStart, placeEnd, 1],
+    [-500, -500, depthStackZ, depthStackZ, 0, 0, 0, 0]
+  );
+
+  // Scale:
+  // EXACT SAME SIZE THROUGHOUT (1.0). Zero shrinkage, zero difference between animation and placement!
+  const scale = useTransform(
+    scrollYProgress,
+    [0, arriveStart, arriveEnd, rotateStart, rotateEnd, placeStart, placeEnd, 1],
+    [0.85, 0.85, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+  );
+
+  // Opacity:
+  const opacity = useTransform(
+    scrollYProgress,
+    [0, Math.max(0, arriveStart - 0.02), arriveEnd, 0.90, 1],
+    [0, 0, 1, 1, 1]
+  );
+
+  // Horizontal 3D Rotation (rotateY: 0deg -> 360deg):
+  const rotateY = useTransform(
+    scrollYProgress,
+    [0, arriveStart, arriveMid, arriveEnd, rotateStart, rotateEnd, placeStart, placeEnd, 1],
+    [-55, -55, -25, 0, 0, 360, 0, 0, 0]
+  );
+
+  // Vertical tilt (rotateX):
+  const rotateX = useTransform(
+    scrollYProgress,
+    [0, arriveStart, arriveMid, arriveEnd, rotateStart, rotateEnd, placeStart, placeEnd, 1],
+    [12, 12, -6, 0, 0, 0, 0, 0, 0]
+  );
+
+  // Filter:
+  const filter = useTransform(
+    scrollYProgress,
+    [0, arriveStart, arriveEnd, placeEnd],
+    ['blur(5px)', 'blur(5px)', 'blur(0px)', 'blur(0px)']
+  );
+
+  return (
+    <motion.div
+      style={{
+        position: 'absolute',
+        width: '380px', // Exact matching width of 1 column in the 3-column grid
+        maxWidth: '90vw',
+        x,
+        y,
+        z,
+        scale,
+        opacity,
+        rotateX,
+        rotateY,
+        filter,
+        transformStyle: 'preserve-3d'
+      }}
+      className="will-change-transform transform-gpu select-none"
+    >
+      <CertificateCardContent
+        cert={cert}
+        isLightMode={isLightMode}
+        getTagFromCategory={getTagFromCategory}
+        onSelect={onSelect}
+      />
+    </motion.div>
   );
 };
 
@@ -335,287 +478,5 @@ const CertificateLightbox: React.FC<{
         </motion.div>
       )}
     </AnimatePresence>
-  );
-};
-
-// Reusable Static Certificate Card for Settled State (Actual Size: 100% full card)
-const CertificateCard: React.FC<{
-  cert: CertificateItem;
-  isLightMode: boolean;
-  getTagFromCategory: (cat: string) => string;
-  onSelect: () => void;
-}> = ({ cert, isLightMode, getTagFromCategory, onSelect }) => {
-  return (
-    <motion.div
-      onClick={onSelect}
-      whileHover={{ 
-        scale: 1.025, 
-        y: -6,
-        borderColor: 'var(--accent-color)',
-        boxShadow: '0 20px 40px -10px var(--accent-glow)',
-        transition: { duration: 0.2 }
-      }}
-      className="rounded-[22px] overflow-hidden border transition-colors duration-300 shadow-xl group cursor-pointer flex flex-col justify-between"
-      style={{
-        backgroundColor: isLightMode ? '#FFFFFF' : 'var(--bg-card)',
-        borderColor: 'var(--bg-card-border)'
-      }}
-    >
-      <div 
-        className="relative aspect-[16/10] p-4 flex items-center justify-center overflow-hidden border-b transition-colors bg-white"
-        style={{ borderColor: 'var(--bg-card-border)' }}
-      >
-        <img
-          src={cert.imageSrc}
-          alt={cert.title}
-          className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300 pointer-events-none"
-        />
-        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-          <div className="px-3.5 py-1.5 rounded-full bg-black/80 border border-white/20 text-white font-mono text-xs flex items-center space-x-1.5 backdrop-blur-md">
-            <ZoomIn className="w-3.5 h-3.5 text-emerald-400" />
-            <span>PREVIEW</span>
-          </div>
-        </div>
-      </div>
-
-      <div 
-        className="p-5 flex flex-col justify-between flex-1 space-y-3 transition-colors"
-        style={{
-          backgroundColor: isLightMode ? 'var(--bg-secondary)' : 'var(--bg-card)'
-        }}
-      >
-        <div>
-          <span className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-[#E08A56] block mb-1">
-            {getTagFromCategory(cert.category)}
-          </span>
-          <h4 
-            className="font-serif text-lg font-medium leading-tight group-hover:text-emerald-400 transition-colors line-clamp-1"
-            style={{ color: 'var(--text-primary)' }}
-          >
-            {cert.title}
-          </h4>
-          <p 
-            className="font-sans text-xs mt-1 line-clamp-1"
-            style={{ color: 'var(--text-secondary)' }}
-          >
-            {cert.issuer}
-          </p>
-        </div>
-
-        <div 
-          className="pt-3 border-t flex items-center justify-between transition-colors"
-          style={{ borderColor: 'var(--bg-card-border)' }}
-        >
-          <span className="font-mono text-xs" style={{ color: 'var(--text-muted)' }}>
-            {cert.issueDate || 'VERIFIED CREDENTIAL'}
-          </span>
-          <span 
-            className="font-mono text-xs flex items-center space-x-1"
-            style={{ color: 'var(--accent-color)' }}
-          >
-            <Award className="w-3.5 h-3.5" />
-            <span>VERIFIED</span>
-          </span>
-        </div>
-      </div>
-    </motion.div>
-  );
-};
-
-// Dynamic Animated Card inside the Pinned Scroll Track
-interface AnimatedScrollCardProps {
-  cert: CertificateItem;
-  index: number;
-  total: number;
-  scrollYProgress: any;
-  isLightMode: boolean;
-  getTagFromCategory: (cat: string) => string;
-  onSelect: () => void;
-}
-
-const AnimatedScrollCard: React.FC<AnimatedScrollCardProps> = ({
-  cert,
-  index,
-  total,
-  scrollYProgress,
-  isLightMode,
-  getTagFromCategory,
-  onSelect
-}) => {
-  // Phase 1 (0.00 to 0.38): Cards emerge one-by-one from the left side with a smooth curved arc into the center
-  const arriveStart = (index / total) * 0.26;
-  const arriveMid = arriveStart + 0.08;
-  const arriveEnd = arriveStart + 0.14;
-
-  // Phase 2 (0.38 to 0.65): Horizontal 3D rotation (rotateY: 0deg -> 360deg) in center
-  const rotateStart = 0.38;
-  const rotateEnd = 0.65;
-
-  // Phase 3 (0.65 to 0.90): Sequential placement from center rotation directly to target 3x3 positions
-  const placeStart = 0.65 + (index / total) * 0.22;
-  const placeEnd = Math.min(0.90, placeStart + 0.08);
-
-  // Exact target 3x3 grid coordinates
-  const cols = 3;
-  const colIndex = index % cols;       // 0, 1, 2 -> Left, Center, Right
-  const rowIndex = Math.floor(index / cols); // 0, 1, 2 -> Row 0, Row 1, Row 2
-
-  // Clean 3-column target grid positions safely below header
-  const targetX = (colIndex - 1) * 380; // -380px, 0px, +380px
-  const targetY = (rowIndex - 1) * 180 + 30; // -150px, +30px, +210px
-
-  // Staggered depth stack while in center
-  const depthStackZ = -index * 140;
-
-  // X position:
-  // Far Left (-1100px) -> Curved sweep into Center (0px) -> Target Grid X
-  const x = useTransform(
-    scrollYProgress,
-    [0, arriveStart, arriveMid, arriveEnd, rotateStart, rotateEnd, placeStart, placeEnd, 1],
-    [-1100, -1100, -350, 0, 0, 0, targetX, targetX, targetX]
-  );
-
-  // Y position:
-  // Curved sweep arc: starts slightly elevated (-70px), sweeps down into arc (+90px), then levels at center (+30px), then flies to Target Grid Y
-  const y = useTransform(
-    scrollYProgress,
-    [0, arriveStart, arriveMid, arriveEnd, rotateStart, rotateEnd, placeStart, placeEnd, 1],
-    [-70, -70, 90, 30, 30, 30, targetY, targetY, targetY]
-  );
-
-  // Z position:
-  // Starts in distance (-600px), curves into foreground center (depthStackZ), levels to 0 during rotation, lands at grid depth (0px)
-  const z = useTransform(
-    scrollYProgress,
-    [0, arriveStart, arriveEnd, rotateStart, rotateEnd, placeStart, placeEnd, 1],
-    [-600, -600, depthStackZ, depthStackZ, 0, 0, 0, 0]
-  );
-
-  // Scale:
-  // Arrives in actual card size! 0.6 from edge of screen -> 0.95 in center -> 0.82 in grid
-  const scale = useTransform(
-    scrollYProgress,
-    [0, arriveStart, arriveEnd, rotateStart, rotateEnd, placeStart, placeEnd, 1],
-    [0.6, 0.6, 0.95, 0.95, 0.95, 0.95, 0.82, 0.82]
-  );
-
-  // Opacity:
-  // Becomes visible as it enters from the left
-  const opacity = useTransform(
-    scrollYProgress,
-    [0, Math.max(0, arriveStart - 0.02), arriveEnd, 0.92, 1],
-    [0, 0, 1, 1, 1]
-  );
-
-  // Horizontal 3D Rotation (rotateY):
-  // 1. Curved entry banking from the left: enters angled at -55deg
-  // 2. Straightens out to 0deg as it reaches center
-  // 3. Performs a smooth 360-degree horizontal spin (rotateY: 0deg -> 360deg)
-  // 4. Settles flat (0deg) into its grid position
-  const rotateY = useTransform(
-    scrollYProgress,
-    [0, arriveStart, arriveMid, arriveEnd, rotateStart, rotateEnd, placeStart, placeEnd, 1],
-    [-55, -55, -25, 0, 0, 360, 0, 0, 0]
-  );
-
-  // Vertical tilt (rotateX):
-  // Subtle natural pitch during flight curve (12deg) -> 0 flat
-  const rotateX = useTransform(
-    scrollYProgress,
-    [0, arriveStart, arriveMid, arriveEnd, rotateStart, rotateEnd, placeStart, placeEnd, 1],
-    [15, 15, -8, 0, 0, 0, 0, 0, 0]
-  );
-
-  // Blur: soft motion blur on fast curve entry (6px) -> crisp (0px)
-  const filter = useTransform(
-    scrollYProgress,
-    [0, arriveStart, arriveEnd, placeEnd],
-    ['blur(6px)', 'blur(6px)', 'blur(0px)', 'blur(0px)']
-  );
-
-  return (
-    <motion.div
-      style={{
-        position: 'absolute',
-        width: 350,
-        x,
-        y,
-        z,
-        scale,
-        opacity,
-        rotateX,
-        rotateY,
-        filter,
-        transformStyle: 'preserve-3d',
-        backgroundColor: isLightMode ? '#FFFFFF' : 'var(--bg-card)',
-        borderColor: 'var(--bg-card-border)'
-      }}
-      onClick={onSelect}
-      whileHover={{ 
-        scale: 0.86,
-        borderColor: 'var(--accent-color)',
-        boxShadow: '0 20px 40px -10px var(--accent-glow)',
-        transition: { duration: 0.2 }
-      }}
-      className="rounded-[22px] overflow-hidden border transition-colors duration-300 shadow-2xl group cursor-pointer flex flex-col justify-between will-change-transform transform-gpu select-none"
-    >
-      <div 
-        className="relative aspect-[16/10] p-3 flex items-center justify-center overflow-hidden border-b transition-colors bg-white"
-        style={{ borderColor: 'var(--bg-card-border)' }}
-      >
-        <img
-          src={cert.imageSrc}
-          alt={cert.title}
-          className="w-full h-full object-contain pointer-events-none"
-        />
-        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-          <div className="px-3 py-1 rounded-full bg-black/80 border border-white/20 text-white font-mono text-[10px] flex items-center space-x-1.5 backdrop-blur-md">
-            <ZoomIn className="w-3 h-3 text-emerald-400" />
-            <span>PREVIEW</span>
-          </div>
-        </div>
-      </div>
-
-      <div 
-        className="p-3.5 flex flex-col justify-between flex-1 space-y-2.5 transition-colors"
-        style={{
-          backgroundColor: isLightMode ? 'var(--bg-secondary)' : 'var(--bg-card)'
-        }}
-      >
-        <div>
-          <span className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-[#E08A56] block mb-1">
-            {getTagFromCategory(cert.category)}
-          </span>
-          <h4 
-            className="font-serif text-sm sm:text-base font-medium leading-tight group-hover:text-emerald-400 transition-colors line-clamp-1"
-            style={{ color: 'var(--text-primary)' }}
-          >
-            {cert.title}
-          </h4>
-          <p 
-            className="font-sans text-xs mt-1 line-clamp-1"
-            style={{ color: 'var(--text-secondary)' }}
-          >
-            {cert.issuer}
-          </p>
-        </div>
-
-        <div 
-          className="pt-2.5 border-t flex items-center justify-between transition-colors"
-          style={{ borderColor: 'var(--bg-card-border)' }}
-        >
-          <span className="font-mono text-[10px]" style={{ color: 'var(--text-muted)' }}>
-            {cert.issueDate || 'VERIFIED'}
-          </span>
-          <span 
-            className="font-mono text-[10px] flex items-center space-x-1"
-            style={{ color: 'var(--accent-color)' }}
-          >
-            <Award className="w-3 h-3" />
-            <span>VERIFIED</span>
-          </span>
-        </div>
-      </div>
-    </motion.div>
   );
 };
