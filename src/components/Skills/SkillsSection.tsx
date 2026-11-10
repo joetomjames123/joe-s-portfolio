@@ -93,6 +93,7 @@ export const SkillsSection: React.FC = () => {
           - Default "all" mode strictly animates in on scroll: cards start off-screen in "hidden" and only fly in when scrolling into the Skills section.
           - When changing between categories, the cards also re-trigger and fly in smoothly from off-screen into their respective slots.
           - Scrolling away / out of viewport disperses them outward, and scrolling back into view re-assembles them from off-screen.
+          - amount: "some" ensures all cards animate into place smoothly without getting stuck when the bottom rows are slightly off edge.
         */}
         <AnimatePresence mode="wait">
           <motion.div 
@@ -101,7 +102,7 @@ export const SkillsSection: React.FC = () => {
             variants={containerVariants}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: false, amount: 0.15 }}
+            viewport={{ once: false, amount: "some", margin: "100px 0px 100px 0px" }}
           >
             {filteredSkills.map((skill, index) => {
               const dir = getFlyDirection(index);
