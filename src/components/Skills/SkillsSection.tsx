@@ -12,6 +12,30 @@ export const SkillsSection: React.FC = () => {
     ? SKILLS_PILLS
     : SKILLS_PILLS.filter((s) => s.category === selectedCategory);
 
+  // Diverse off-screen entry & exit trajectory vectors for each card
+  const getFlyDirection = (index: number) => {
+    const pattern = index % 8;
+    switch (pattern) {
+      case 0:
+        return { x: -350, y: -250, rotate: -25, scale: 0.6 }; // Top-Left
+      case 1:
+        return { x: 0, y: -350, rotate: 15, scale: 0.6 };    // Top-Center
+      case 2:
+        return { x: 350, y: -250, rotate: 25, scale: 0.6 };  // Top-Right
+      case 3:
+        return { x: 400, y: 0, rotate: -18, scale: 0.6 };    // Far-Right
+      case 4:
+        return { x: 350, y: 300, rotate: 20, scale: 0.6 };   // Bottom-Right
+      case 5:
+        return { x: 0, y: 350, rotate: -15, scale: 0.6 };    // Bottom-Center
+      case 6:
+        return { x: -350, y: 300, rotate: -20, scale: 0.6 }; // Bottom-Left
+      case 7:
+      default:
+        return { x: -400, y: 0, rotate: 18, scale: 0.6 };    // Far-Left
+    }
+  };
+
   return (
     <section id="skills" className="py-28 relative border-t border-white/5 overflow-hidden transition-colors duration-500" style={{ backgroundColor: 'transparent' }}>
       {/* Background ambient lighting */}
@@ -90,58 +114,80 @@ export const SkillsSection: React.FC = () => {
         </div>
 
         {/* 
-          ADAPTIVE SKILL PILLS:
-          - Dark Mode: rich deep obsidian charcoal with silver/white typography and emerald glow.
-          - Light Mode: pristine clean white cards with crisp high-contrast dark text and subtle shadow (No more black pills on white page!).
+          SCROLL-DRIVEN SCATTER & ASSEMBLE ANIMATION:
+          - Scrolling into section: cards fly in from diverse off-screen angles and lock into their grid position with spring physics.
+          - Scrolling away / out of viewport: cards disperse back out of the screen.
         */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-          {filteredSkills.map((skill, index) => (
-            <motion.div
-              key={skill.name}
-              layout
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: index * 0.02 }}
-              whileHover={{ 
-                scale: 1.025, 
-                borderColor: 'var(--accent-color)',
-                boxShadow: '0 12px 28px -5px var(--accent-glow)' 
-              }}
-              className="relative px-5 py-4 rounded-2xl sm:rounded-[22px] border transition-all duration-300 flex items-center space-x-4 group cursor-pointer backdrop-blur-md shadow-md"
-              style={{
-                backgroundColor: isLightMode ? '#FFFFFF' : 'rgba(20, 24, 22, 0.85)',
-                borderColor: 'var(--bg-card-border)'
-              }}
-            >
-              {/* Left: Icon container */}
-              <div 
-                className="shrink-0 w-11 h-11 rounded-xl border flex items-center justify-center transition-colors shadow-sm"
+          {filteredSkills.map((skill, index) => {
+            const dir = getFlyDirection(index);
+            return (
+              <motion.div
+                key={skill.name}
+                initial={{
+                  opacity: 0,
+                  x: dir.x,
+                  y: dir.y,
+                  rotate: dir.rotate,
+                  scale: dir.scale
+                }}
+                whileInView={{
+                  opacity: 1,
+                  x: 0,
+                  y: 0,
+                  rotate: 0,
+                  scale: 1
+                }}
+                viewport={{ once: false, amount: 0.15 }}
+                transition={{
+                  type: 'spring',
+                  damping: 24,
+                  stiffness: 170,
+                  mass: 0.7,
+                  delay: (index % 4) * 0.04
+                }}
+                whileHover={{ 
+                  scale: 1.035, 
+                  borderColor: 'var(--accent-color)',
+                  boxShadow: '0 12px 28px -5px var(--accent-glow)',
+                  transition: { duration: 0.2 }
+                }}
+                className="relative px-5 py-4 rounded-2xl sm:rounded-[22px] border transition-colors duration-300 flex items-center space-x-4 group cursor-pointer backdrop-blur-md shadow-md will-change-transform"
                 style={{
-                  backgroundColor: isLightMode ? '#F0F4F2' : 'rgba(255, 255, 255, 0.05)',
-                  borderColor: isLightMode ? 'rgba(0,0,0,0.08)' : 'rgba(255, 255, 255, 0.1)',
-                  color: 'var(--accent-color)'
+                  backgroundColor: isLightMode ? '#FFFFFF' : 'rgba(20, 24, 22, 0.85)',
+                  borderColor: 'var(--bg-card-border)'
                 }}
               >
-                <TechIcon type={skill.iconType} className="w-5 h-5" />
-              </div>
+                {/* Left: Icon container */}
+                <div 
+                  className="shrink-0 w-11 h-11 rounded-xl border flex items-center justify-center transition-colors shadow-sm"
+                  style={{
+                    backgroundColor: isLightMode ? '#F0F4F2' : 'rgba(255, 255, 255, 0.05)',
+                    borderColor: isLightMode ? 'rgba(0,0,0,0.08)' : 'rgba(255, 255, 255, 0.1)',
+                    color: 'var(--accent-color)'
+                  }}
+                >
+                  <TechIcon type={skill.iconType} className="w-5 h-5" />
+                </div>
 
-              {/* Right: Title & Sublabel with WCAG AAA Contrast */}
-              <div className="flex flex-col justify-center min-w-0">
-                <span 
-                  className="font-sans font-bold text-sm sm:text-base tracking-tight truncate transition-colors"
-                  style={{ color: 'var(--text-primary)' }}
-                >
-                  {skill.name}
-                </span>
-                <span 
-                  className="font-mono text-[9.5px] sm:text-[10px] uppercase tracking-wider truncate transition-colors font-medium mt-0.5"
-                  style={{ color: 'var(--text-muted)' }}
-                >
-                  {skill.sublabel}
-                </span>
-              </div>
-            </motion.div>
-          ))}
+                {/* Right: Title & Sublabel with WCAG AAA Contrast */}
+                <div className="flex flex-col justify-center min-w-0">
+                  <span 
+                    className="font-sans font-bold text-sm sm:text-base tracking-tight truncate transition-colors"
+                    style={{ color: 'var(--text-primary)' }}
+                  >
+                    {skill.name}
+                  </span>
+                  <span 
+                    className="font-mono text-[9.5px] sm:text-[10px] uppercase tracking-wider truncate transition-colors font-medium mt-0.5"
+                    style={{ color: 'var(--text-muted)' }}
+                  >
+                    {skill.sublabel}
+                  </span>
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
       </div>
     </section>
