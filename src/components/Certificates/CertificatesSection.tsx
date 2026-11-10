@@ -208,13 +208,12 @@ export const CertificatesSection: React.FC = () => {
         </div>
 
         {/* 
-          SCROLL-BOUND PINNED 3D ARENA:
-          - Screen is frozen in place while user scrolls down.
-          - Cards arrive one by one right behind each other in full actual size (380px, scale: 1).
-          - Depth stack along Z-axis: Card 0 at z: 0, Card 1 at z: -250, Card 2 at z: -500, etc.
-          - Each card arrives and performs its 3D vertical roll (rotateX: 90 -> 0 -> 360).
-          - Once all cards join the vertical rotation queue, they fly out sequentially to their exact 3x3 positions (1st card to slot 1, 2nd to slot 2, etc.).
-          - Once placed, cards stay locked in position; scrolling up will NOT reverse the animation.
+          HORIZONTAL CURVE SWEEP & 3D ROTATION ARENA:
+          - Screen is frozen while scrolling down.
+          - Cards enter one-by-one from the far left side outside the viewport (-1100px) with curved arc trajectory (x: -1100 -> center 0, y arc, rotateY: -65deg).
+          - Arrive in center and perform a horizontal 3D rotation (rotateY: 0deg -> 360deg spin).
+          - Once rotated, cards sequentially fly smoothly into their respective grid positions (1st card to slot 1, 2nd to slot 2, etc.).
+          - Once settled, cards lock into place; scrolling up will NOT reverse the animation.
         */}
         <div 
           className="relative flex-1 w-full max-w-7xl mx-auto px-6 sm:px-8 flex items-center justify-center [perspective:2000px] [transform-style:preserve-3d] mt-2"
@@ -237,7 +236,7 @@ export const CertificatesSection: React.FC = () => {
 
         {/* Bottom subtle guidance cue */}
         <div className="max-w-7xl mx-auto px-6 sm:px-8 w-full flex items-center justify-between text-[11px] font-mono text-typography-muted opacity-60 z-20">
-          <span>SCROLL DOWN TO ADVANCE VERTICAL 3D ROTATION & PLACEMENT</span>
+          <span>SCROLL DOWN TO ADVANCE HORIZONTAL 3D ROTATION & PLACEMENT</span>
           <span>{filteredCerts.length} CERTIFICATES</span>
         </div>
 
@@ -443,17 +442,16 @@ const AnimatedScrollCard: React.FC<AnimatedScrollCardProps> = ({
   getTagFromCategory,
   onSelect
 }) => {
-  // Phase 1 (0.00 to 0.40): Cards arrive one by one from infinity right in back of one another in actual card size!
-  // Each card's arrival is staggered
-  const arriveStart = (index / total) * 0.28;
-  const arriveEnd = arriveStart + 0.12;
+  // Phase 1 (0.00 to 0.38): Cards emerge one-by-one from the left side with a smooth curved arc into the center
+  const arriveStart = (index / total) * 0.26;
+  const arriveMid = arriveStart + 0.08;
+  const arriveEnd = arriveStart + 0.14;
 
-  // Phase 2 (0.40 to 0.65): All arrived cards engage in the vertical 3D rotation
+  // Phase 2 (0.38 to 0.65): Horizontal 3D rotation (rotateY: 0deg -> 360deg) in center
   const rotateStart = 0.38;
   const rotateEnd = 0.65;
 
-  // Phase 3 (0.65 to 0.90): Sequential placement from rotation to target grid positions
-  // 1st card placed first, 2nd card placed second, etc.
+  // Phase 3 (0.65 to 0.90): Sequential placement from center rotation directly to target 3x3 positions
   const placeStart = 0.65 + (index / total) * 0.22;
   const placeEnd = Math.min(0.90, placeStart + 0.08);
 
@@ -466,71 +464,73 @@ const AnimatedScrollCard: React.FC<AnimatedScrollCardProps> = ({
   const targetX = (colIndex - 1) * 380; // -380px, 0px, +380px
   const targetY = (rowIndex - 1) * 180 + 30; // -150px, +30px, +210px
 
-  // Staggered depth when arriving in line behind one another:
-  // Card 0 at z: 0, Card 1 at z: -250, Card 2 at z: -500, Card 3 at z: -750...
-  const depthStackZ = -index * 220;
-
-  // Z transform:
-  // Infinity (-1800px) -> Front Queue (depthStackZ) -> 3D Rotating Stack (-100 to 0) -> Target Grid (0px)
-  const z = useTransform(
-    scrollYProgress,
-    [0, arriveStart, arriveEnd, rotateStart, rotateEnd, placeStart, placeEnd, 1],
-    [-1800, -1800, depthStackZ, depthStackZ, 0, 0, 0, 0]
-  );
-
-  // Scale:
-  // Actual size maintained throughout! Tiny only at the edge of infinity (0.3), quickly expanding to 1.0 (actual size)
-  const scale = useTransform(
-    scrollYProgress,
-    [0, arriveStart, arriveEnd, rotateStart, rotateEnd, placeStart, placeEnd, 1],
-    [0.2, 0.2, 0.95, 0.95, 0.95, 0.95, 0.82, 0.82]
-  );
-
-  // Opacity:
-  // Invisible until it begins arriving, then solid 1
-  const opacity = useTransform(
-    scrollYProgress,
-    [0, Math.max(0, arriveStart - 0.03), arriveEnd, 0.92, 1],
-    [0, 0, 1, 1, 1]
-  );
+  // Staggered depth stack while in center
+  const depthStackZ = -index * 140;
 
   // X position:
-  // Centered along 0 when lined up behind each other -> Target Grid X
+  // Far Left (-1100px) -> Curved sweep into Center (0px) -> Target Grid X
   const x = useTransform(
     scrollYProgress,
-    [0, arriveStart, arriveEnd, rotateStart, rotateEnd, placeStart, placeEnd, 1],
-    [0, 0, 0, 0, 0, 0, targetX, targetX]
+    [0, arriveStart, arriveMid, arriveEnd, rotateStart, rotateEnd, placeStart, placeEnd, 1],
+    [-1100, -1100, -350, 0, 0, 0, targetX, targetX, targetX]
   );
 
   // Y position:
-  // Centered at 30 -> vertical wave during rotation -> Target Grid Y
-  const verticalWave = ((index % 3) - 1) * 20;
+  // Curved sweep arc: starts slightly elevated (-70px), sweeps down into arc (+90px), then levels at center (+30px), then flies to Target Grid Y
   const y = useTransform(
     scrollYProgress,
-    [0, arriveStart, arriveEnd, rotateStart, rotateEnd, placeStart, placeEnd, 1],
-    [30, 30, 30, 30 + verticalWave, 30, 30, targetY, targetY]
+    [0, arriveStart, arriveMid, arriveEnd, rotateStart, rotateEnd, placeStart, placeEnd, 1],
+    [-70, -70, 90, 30, 30, 30, targetY, targetY, targetY]
   );
 
-  // Vertical 3D Rotation (rotateX):
-  // Arrives with forward vertical pitch (75deg) -> levels out to 0 -> performs a full 3D vertical rotation (0deg -> 360deg) -> settles flat (0deg)
-  const rotateX = useTransform(
+  // Z position:
+  // Starts in distance (-600px), curves into foreground center (depthStackZ), levels to 0 during rotation, lands at grid depth (0px)
+  const z = useTransform(
     scrollYProgress,
     [0, arriveStart, arriveEnd, rotateStart, rotateEnd, placeStart, placeEnd, 1],
-    [75, 75, 0, 0, 360, 0, 0, 0]
+    [-600, -600, depthStackZ, depthStackZ, 0, 0, 0, 0]
   );
 
-  // Subtle natural depth rotation along Y (0deg)
+  // Scale:
+  // Arrives in actual card size! 0.6 from edge of screen -> 0.95 in center -> 0.82 in grid
+  const scale = useTransform(
+    scrollYProgress,
+    [0, arriveStart, arriveEnd, rotateStart, rotateEnd, placeStart, placeEnd, 1],
+    [0.6, 0.6, 0.95, 0.95, 0.95, 0.95, 0.82, 0.82]
+  );
+
+  // Opacity:
+  // Becomes visible as it enters from the left
+  const opacity = useTransform(
+    scrollYProgress,
+    [0, Math.max(0, arriveStart - 0.02), arriveEnd, 0.92, 1],
+    [0, 0, 1, 1, 1]
+  );
+
+  // Horizontal 3D Rotation (rotateY):
+  // 1. Curved entry banking from the left: enters angled at -55deg
+  // 2. Straightens out to 0deg as it reaches center
+  // 3. Performs a smooth 360-degree horizontal spin (rotateY: 0deg -> 360deg)
+  // 4. Settles flat (0deg) into its grid position
   const rotateY = useTransform(
     scrollYProgress,
-    [0, arriveStart, arriveEnd, rotateStart, rotateEnd, placeStart, placeEnd, 1],
-    [0, 0, 0, (index % 2 === 0 ? 8 : -8), 0, 0, 0, 0]
+    [0, arriveStart, arriveMid, arriveEnd, rotateStart, rotateEnd, placeStart, placeEnd, 1],
+    [-55, -55, -25, 0, 0, 360, 0, 0, 0]
   );
 
-  // Blur: blurred when arriving from deep space (10px) -> crisp (0px)
+  // Vertical tilt (rotateX):
+  // Subtle natural pitch during flight curve (12deg) -> 0 flat
+  const rotateX = useTransform(
+    scrollYProgress,
+    [0, arriveStart, arriveMid, arriveEnd, rotateStart, rotateEnd, placeStart, placeEnd, 1],
+    [15, 15, -8, 0, 0, 0, 0, 0, 0]
+  );
+
+  // Blur: soft motion blur on fast curve entry (6px) -> crisp (0px)
   const filter = useTransform(
     scrollYProgress,
     [0, arriveStart, arriveEnd, placeEnd],
-    ['blur(10px)', 'blur(10px)', 'blur(0px)', 'blur(0px)']
+    ['blur(6px)', 'blur(6px)', 'blur(0px)', 'blur(0px)']
   );
 
   return (
