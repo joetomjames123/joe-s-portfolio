@@ -18,7 +18,7 @@ export const CertificatesSection: React.FC = () => {
     offset: ['start start', 'end end']
   });
 
-  // Once the sequence completes near the end of the scroll track (~0.88), lock it in settled state for the session
+  // Once the sequence completes near the end of the scroll track (~0.88), lock it permanently in settled state
   useEffect(() => {
     const unsubscribe = scrollYProgress.on('change', (latest) => {
       if (latest >= 0.88 && !hasCompletedSequence) {
@@ -54,7 +54,7 @@ export const CertificatesSection: React.FC = () => {
     }
   };
 
-  // If already completed in this session, render as a clean static interactive responsive grid without pinning
+  // If already completed in this session, render directly as the clean responsive 3-column grid without pinning
   if (hasCompletedSequence) {
     return (
       <section 
@@ -116,7 +116,7 @@ export const CertificatesSection: React.FC = () => {
             </div>
           </div>
 
-          {/* Settled Responsive Grid: Clean, beautifully spaced 3-column layout */}
+          {/* Clean 3-Column Responsive Grid in Full Size */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredCerts.map((cert) => (
               <CertificateCard
@@ -149,16 +149,16 @@ export const CertificatesSection: React.FC = () => {
       style={{
         backgroundColor: 'transparent',
         borderColor: 'var(--bg-card-border)',
-        height: '340vh'
+        height: '350vh'
       }}
     >
       {/* Pinned Sticky Viewport: Fixed on screen during animation */}
-      <div className="sticky top-0 h-screen w-full flex flex-col justify-start overflow-hidden pt-12 pb-6">
+      <div className="sticky top-0 h-screen w-full flex flex-col justify-start overflow-hidden pt-10 pb-6">
         
         <div className="max-w-7xl mx-auto px-6 sm:px-8 w-full z-20">
           {/* Section Header */}
           <div 
-            className="flex flex-col md:flex-row md:items-end justify-between mb-3 pb-3 border-b transition-colors"
+            className="flex flex-col md:flex-row md:items-end justify-between mb-4 pb-3 border-b transition-colors"
             style={{ borderColor: 'var(--bg-card-border)' }}
           >
             <div>
@@ -210,12 +210,14 @@ export const CertificatesSection: React.FC = () => {
         {/* 
           SCROLL-BOUND PINNED 3D ARENA:
           - Screen is frozen in place while user scrolls down.
-          - Cards emerge one-by-one with distance from infinity space (scale: 0.02, z: -1400px).
-          - Join a unified 3D vertical roll (rotateX: 85 -> 0).
-          - Once all cards join the vertical rotation, they sequentially fly into and settle into the clean 3x3 layout (col 0, 1, 2, row 0, 1, 2) positioned safely below the header.
+          - Cards arrive one by one right behind each other in full actual size (380px, scale: 1).
+          - Depth stack along Z-axis: Card 0 at z: 0, Card 1 at z: -250, Card 2 at z: -500, etc.
+          - Each card arrives and performs its 3D vertical roll (rotateX: 90 -> 0 -> 360).
+          - Once all cards join the vertical rotation queue, they fly out sequentially to their exact 3x3 positions (1st card to slot 1, 2nd to slot 2, etc.).
+          - Once placed, cards stay locked in position; scrolling up will NOT reverse the animation.
         */}
         <div 
-          className="relative flex-1 w-full max-w-7xl mx-auto px-6 sm:px-8 flex items-center justify-center [perspective:1800px] [transform-style:preserve-3d] mt-2"
+          className="relative flex-1 w-full max-w-7xl mx-auto px-6 sm:px-8 flex items-center justify-center [perspective:2000px] [transform-style:preserve-3d] mt-2"
         >
           {filteredCerts.map((cert, index) => {
             return (
@@ -235,7 +237,7 @@ export const CertificatesSection: React.FC = () => {
 
         {/* Bottom subtle guidance cue */}
         <div className="max-w-7xl mx-auto px-6 sm:px-8 w-full flex items-center justify-between text-[11px] font-mono text-typography-muted opacity-60 z-20">
-          <span>SCROLL DOWN TO ASSEMBLE 3D CREDENTIAL CARDS</span>
+          <span>SCROLL DOWN TO ADVANCE VERTICAL 3D ROTATION & PLACEMENT</span>
           <span>{filteredCerts.length} CERTIFICATES</span>
         </div>
 
@@ -337,7 +339,7 @@ const CertificateLightbox: React.FC<{
   );
 };
 
-// Reusable Static Certificate Card for Settled State
+// Reusable Static Certificate Card for Settled State (Actual Size: 100% full card)
 const CertificateCard: React.FC<{
   cert: CertificateItem;
   isLightMode: boolean;
@@ -441,87 +443,101 @@ const AnimatedScrollCard: React.FC<AnimatedScrollCardProps> = ({
   getTagFromCategory,
   onSelect
 }) => {
-  // Phase 1 (0.00 to 0.38): Cards emerge one-by-one from infinity with vertical roll
-  const emergeStart = (index / total) * 0.25;
-  const emergeEnd = emergeStart + 0.12;
+  // Phase 1 (0.00 to 0.40): Cards arrive one by one from infinity right in back of one another in actual card size!
+  // Each card's arrival is staggered
+  const arriveStart = (index / total) * 0.28;
+  const arriveEnd = arriveStart + 0.12;
 
-  // Phase 2 (0.38 to 0.65): Synchronized 3D vertical roll and flip
-  const rotateStart = 0.35;
-  const rotateEnd = 0.62;
+  // Phase 2 (0.40 to 0.65): All arrived cards engage in the vertical 3D rotation
+  const rotateStart = 0.38;
+  const rotateEnd = 0.65;
 
-  // Phase 3 (0.62 to 0.88): Sequential placement into exact 3x3 positions
-  const settleStart = 0.62 + (index / total) * 0.22;
-  const settleEnd = Math.min(0.88, settleStart + 0.08);
+  // Phase 3 (0.65 to 0.90): Sequential placement from rotation to target grid positions
+  // 1st card placed first, 2nd card placed second, etc.
+  const placeStart = 0.65 + (index / total) * 0.22;
+  const placeEnd = Math.min(0.90, placeStart + 0.08);
 
-  // Exact 3-column, 3-row grid positions (Clean layout: safely below header, nicely separated)
+  // Exact target 3x3 grid coordinates
   const cols = 3;
-  const colIndex = index % cols;       // 0, 1, 2 -> Left (-370px), Center (0px), Right (+370px)
-  const rowIndex = Math.floor(index / cols); // 0, 1, 2 -> Row 0 (-175px), Row 1 (0px), Row 2 (+175px)
+  const colIndex = index % cols;       // 0, 1, 2 -> Left, Center, Right
+  const rowIndex = Math.floor(index / cols); // 0, 1, 2 -> Row 0, Row 1, Row 2
 
-  const gridX = (colIndex - 1) * 370;
-  // Offset downwards so Row 0 never collides with the header
-  const gridY = (rowIndex - 1) * 175 + 25;
+  // Clean 3-column target grid positions safely below header
+  const targetX = (colIndex - 1) * 380; // -380px, 0px, +380px
+  const targetY = (rowIndex - 1) * 180 + 30; // -150px, +30px, +210px
 
-  // Angular offset in rotating 3D carousel
-  const baseAngle = (index / total) * 360;
-  const ringX = Math.sin((baseAngle * Math.PI) / 180) * 260;
-  const ringY = Math.cos((baseAngle * Math.PI) / 180) * 60;
+  // Staggered depth when arriving in line behind one another:
+  // Card 0 at z: 0, Card 1 at z: -250, Card 2 at z: -500, Card 3 at z: -750...
+  const depthStackZ = -index * 220;
 
-  // Transforms
-  const scale = useTransform(
+  // Z transform:
+  // Infinity (-1800px) -> Front Queue (depthStackZ) -> 3D Rotating Stack (-100 to 0) -> Target Grid (0px)
+  const z = useTransform(
     scrollYProgress,
-    [0, emergeStart, emergeEnd, rotateStart, rotateEnd, settleStart, settleEnd, 1],
-    [0.02, 0.02, 0.48, 0.48, 0.48, 0.48, 0.78, 0.78]
+    [0, arriveStart, arriveEnd, rotateStart, rotateEnd, placeStart, placeEnd, 1],
+    [-1800, -1800, depthStackZ, depthStackZ, 0, 0, 0, 0]
   );
 
+  // Scale:
+  // Actual size maintained throughout! Tiny only at the edge of infinity (0.3), quickly expanding to 1.0 (actual size)
+  const scale = useTransform(
+    scrollYProgress,
+    [0, arriveStart, arriveEnd, rotateStart, rotateEnd, placeStart, placeEnd, 1],
+    [0.2, 0.2, 0.95, 0.95, 0.95, 0.95, 0.82, 0.82]
+  );
+
+  // Opacity:
+  // Invisible until it begins arriving, then solid 1
   const opacity = useTransform(
     scrollYProgress,
-    [0, Math.max(0, emergeStart - 0.02), emergeEnd, 0.9, 1],
+    [0, Math.max(0, arriveStart - 0.03), arriveEnd, 0.92, 1],
     [0, 0, 1, 1, 1]
   );
 
-  const z = useTransform(
-    scrollYProgress,
-    [0, emergeStart, emergeEnd, rotateStart, rotateEnd, settleStart, settleEnd, 1],
-    [-1500, -1500, -100, 0, -40, -40, 0, 0]
-  );
-
+  // X position:
+  // Centered along 0 when lined up behind each other -> Target Grid X
   const x = useTransform(
     scrollYProgress,
-    [0, emergeStart, emergeEnd, rotateStart, rotateEnd, settleStart, settleEnd, 1],
-    [0, 0, ringX, ringX, ringX, ringX, gridX, gridX]
+    [0, arriveStart, arriveEnd, rotateStart, rotateEnd, placeStart, placeEnd, 1],
+    [0, 0, 0, 0, 0, 0, targetX, targetX]
   );
 
+  // Y position:
+  // Centered at 30 -> vertical wave during rotation -> Target Grid Y
+  const verticalWave = ((index % 3) - 1) * 20;
   const y = useTransform(
     scrollYProgress,
-    [0, emergeStart, emergeEnd, rotateStart, rotateEnd, settleStart, settleEnd, 1],
-    [80, 80, ringY, ringY, ringY, ringY, gridY, gridY]
+    [0, arriveStart, arriveEnd, rotateStart, rotateEnd, placeStart, placeEnd, 1],
+    [30, 30, 30, 30 + verticalWave, 30, 30, targetY, targetY]
   );
 
-  // Vertical 3D rotation: rolls forward along X-axis from infinity (95deg -> 0deg -> 360deg -> 0deg flat)
+  // Vertical 3D Rotation (rotateX):
+  // Arrives with forward vertical pitch (75deg) -> levels out to 0 -> performs a full 3D vertical rotation (0deg -> 360deg) -> settles flat (0deg)
   const rotateX = useTransform(
     scrollYProgress,
-    [0, emergeStart, emergeEnd, rotateStart, rotateEnd, settleStart, settleEnd, 1],
-    [95, 95, 20, 180, 360, 0, 0, 0]
+    [0, arriveStart, arriveEnd, rotateStart, rotateEnd, placeStart, placeEnd, 1],
+    [75, 75, 0, 0, 360, 0, 0, 0]
   );
 
+  // Subtle natural depth rotation along Y (0deg)
   const rotateY = useTransform(
     scrollYProgress,
-    [0, emergeStart, emergeEnd, rotateStart, rotateEnd, settleStart, settleEnd, 1],
-    [0, 0, (index % 2 === 0 ? 15 : -15), 0, 0, 0, 0, 0]
+    [0, arriveStart, arriveEnd, rotateStart, rotateEnd, placeStart, placeEnd, 1],
+    [0, 0, 0, (index % 2 === 0 ? 8 : -8), 0, 0, 0, 0]
   );
 
+  // Blur: blurred when arriving from deep space (10px) -> crisp (0px)
   const filter = useTransform(
     scrollYProgress,
-    [0, emergeStart, emergeEnd, settleEnd],
-    ['blur(14px)', 'blur(14px)', 'blur(0px)', 'blur(0px)']
+    [0, arriveStart, arriveEnd, placeEnd],
+    ['blur(10px)', 'blur(10px)', 'blur(0px)', 'blur(0px)']
   );
 
   return (
     <motion.div
       style={{
         position: 'absolute',
-        width: 340,
+        width: 350,
         x,
         y,
         z,
@@ -536,15 +552,15 @@ const AnimatedScrollCard: React.FC<AnimatedScrollCardProps> = ({
       }}
       onClick={onSelect}
       whileHover={{ 
-        scale: 0.82,
+        scale: 0.86,
         borderColor: 'var(--accent-color)',
         boxShadow: '0 20px 40px -10px var(--accent-glow)',
         transition: { duration: 0.2 }
       }}
-      className="rounded-[20px] overflow-hidden border transition-colors duration-300 shadow-2xl group cursor-pointer flex flex-col justify-between will-change-transform transform-gpu select-none"
+      className="rounded-[22px] overflow-hidden border transition-colors duration-300 shadow-2xl group cursor-pointer flex flex-col justify-between will-change-transform transform-gpu select-none"
     >
       <div 
-        className="relative aspect-[16/10] p-2.5 flex items-center justify-center overflow-hidden border-b transition-colors bg-white"
+        className="relative aspect-[16/10] p-3 flex items-center justify-center overflow-hidden border-b transition-colors bg-white"
         style={{ borderColor: 'var(--bg-card-border)' }}
       >
         <img
@@ -561,23 +577,23 @@ const AnimatedScrollCard: React.FC<AnimatedScrollCardProps> = ({
       </div>
 
       <div 
-        className="p-3 flex flex-col justify-between flex-1 space-y-2 transition-colors"
+        className="p-3.5 flex flex-col justify-between flex-1 space-y-2.5 transition-colors"
         style={{
           backgroundColor: isLightMode ? 'var(--bg-secondary)' : 'var(--bg-card)'
         }}
       >
         <div>
-          <span className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-[#E08A56] block mb-0.5">
+          <span className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-[#E08A56] block mb-1">
             {getTagFromCategory(cert.category)}
           </span>
           <h4 
-            className="font-serif text-sm font-medium leading-tight group-hover:text-emerald-400 transition-colors line-clamp-1"
+            className="font-serif text-sm sm:text-base font-medium leading-tight group-hover:text-emerald-400 transition-colors line-clamp-1"
             style={{ color: 'var(--text-primary)' }}
           >
             {cert.title}
           </h4>
           <p 
-            className="font-sans text-[11px] mt-0.5 line-clamp-1"
+            className="font-sans text-xs mt-1 line-clamp-1"
             style={{ color: 'var(--text-secondary)' }}
           >
             {cert.issuer}
@@ -585,7 +601,7 @@ const AnimatedScrollCard: React.FC<AnimatedScrollCardProps> = ({
         </div>
 
         <div 
-          className="pt-2 border-t flex items-center justify-between transition-colors"
+          className="pt-2.5 border-t flex items-center justify-between transition-colors"
           style={{ borderColor: 'var(--bg-card-border)' }}
         >
           <span className="font-mono text-[10px]" style={{ color: 'var(--text-muted)' }}>
