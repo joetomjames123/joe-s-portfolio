@@ -73,8 +73,8 @@ export const CosmicMeteorShower: React.FC = () => {
       // Zoom factor: scrolling down zooms in, scrolling up zooms out
       const scrollOffset = currentScroll * 0.75;
 
-      // Dynamic colors based on active theme
-      const neutralStarColor = isLightMode ? '#0F172A' : '#FFFFFF';
+      // Dynamic colors based on active theme with rich contrast in light mode
+      const neutralStarColor = isLightMode ? '#334155' : '#FFFFFF';
       const accentStarColor = activeAccentHex || (isLightMode ? '#7C3AED' : '#8B5CF6');
 
       for (let i = 0; i < stars.length; i++) {
@@ -99,13 +99,15 @@ export const CosmicMeteorShower: React.FC = () => {
         const currentOpacity = star.baseOpacity + twinkle * 0.25;
 
         // Stars closer to viewer appear brighter and larger
-        const depthAlpha = Math.min(1, Math.max(0.1, 1 - adjustedZ / 950));
-        const finalAlpha = Math.max(0.12, Math.min(0.95, currentOpacity * depthAlpha));
+        const depthAlpha = Math.min(1, Math.max(0.15, 1 - adjustedZ / 950));
+        const finalAlpha = Math.max(isLightMode ? 0.4 : 0.15, Math.min(1, currentOpacity * depthAlpha));
 
         ctx.globalAlpha = finalAlpha;
         ctx.fillStyle = star.isAccent ? accentStarColor : neutralStarColor;
         ctx.beginPath();
-        ctx.arc(projectedX, projectedY, Math.max(0.6, star.radius * scale * 2.2), 0, Math.PI * 2);
+        // Give slightly more presence in light mode so the celestial particles are clearly visible
+        const baseRadius = isLightMode ? Math.max(1.2, star.radius * 1.5) : star.radius;
+        ctx.arc(projectedX, projectedY, Math.max(0.8, baseRadius * scale * 2.5), 0, Math.PI * 2);
         ctx.fill();
       }
 
@@ -127,7 +129,7 @@ export const CosmicMeteorShower: React.FC = () => {
       ref={canvasRef}
       className="fixed inset-0 pointer-events-none z-0 w-full h-full transform-gpu"
       style={{
-        opacity: isLightMode ? 0.45 : 0.95
+        opacity: isLightMode ? 0.9 : 0.95
       }}
     />
   );

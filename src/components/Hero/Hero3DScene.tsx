@@ -82,7 +82,7 @@ const UnifiedSpaceScene: React.FC<{ accentColor: string; isLightMode: boolean }>
   return (
     <group ref={universeGroupRef}>
       {/* Dynamic Cosmic Background: Moving stars, celestial rings, and satellites traversing the entire Home section */}
-      <CosmicBackground accentColor={accentColor} />
+      <CosmicBackground accentColor={accentColor} isLightMode={isLightMode} />
 
       {/* The Central Interactive Planet positioned on the right half */}
       <group ref={planetContainerRef} position={[2.6, 0, 0]}>

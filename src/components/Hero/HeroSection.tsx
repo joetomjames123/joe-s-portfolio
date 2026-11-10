@@ -66,11 +66,14 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onReplayIntro }) => {
           {/* 
             Main Heading:
             "Joe Tom" adapts to theme: dark in light mode, crisp white in dark mode
-            "James" in vibrant violet purple
+            "James" adapts dynamically to the active theme accent color with subtle glow
           */}
           <h1 className="font-sans text-6xl sm:text-8xl xl:text-9xl font-semibold tracking-tight leading-[0.95] mb-6 overflow-visible">
             <span className="block transition-colors duration-300" style={{ color: 'var(--text-primary)' }}>Joe Tom</span>
-            <span className="block text-[#8B5CF6] hover:text-[#9F75FF] transition-colors">
+            <span 
+              className="block transition-all duration-500 drop-shadow-sm"
+              style={{ color: 'var(--accent-color)' }}
+            >
               James
             </span>
           </h1>

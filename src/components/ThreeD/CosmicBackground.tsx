@@ -5,11 +5,13 @@ import * as THREE from 'three';
 
 interface CosmicBackgroundProps {
   accentColor?: string;
+  isLightMode?: boolean;
   onNavigate?: (sectionId: string) => void;
 }
 
 export const CosmicBackground: React.FC<CosmicBackgroundProps> = ({ 
   accentColor = '#8B5CF6',
+  isLightMode = false,
   onNavigate
 }) => {
   const pointsRef = useRef<THREE.Points>(null);
@@ -97,11 +99,11 @@ export const CosmicBackground: React.FC<CosmicBackgroundProps> = ({
           />
         </bufferGeometry>
         <pointsMaterial
-          size={0.07}
-          color="#FFFFFF"
+          size={isLightMode ? 0.12 : 0.08}
+          color={isLightMode ? '#334155' : '#FFFFFF'}
           transparent
-          opacity={0.65}
-          blending={THREE.AdditiveBlending}
+          opacity={isLightMode ? 0.85 : 0.65}
+          blending={isLightMode ? THREE.NormalBlending : THREE.AdditiveBlending}
           sizeAttenuation={true}
         />
       </points>
