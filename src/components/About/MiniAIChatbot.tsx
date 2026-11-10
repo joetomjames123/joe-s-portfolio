@@ -187,14 +187,13 @@ export const MiniAIChatbot: React.FC = () => {
         <motion.div 
           animate={{ y: [0, -5, 0] }}
           transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-          className="mb-2 px-3 py-1.5 rounded-full border text-[11px] font-mono tracking-wider flex items-center space-x-2 shadow-lg backdrop-blur-md"
+          className="mb-2 px-3.5 py-1.5 rounded-full border text-[11px] font-mono tracking-wider flex items-center justify-center shadow-lg backdrop-blur-md"
           style={{
             backgroundColor: isLightMode ? '#FFFFFF' : 'rgba(15, 18, 25, 0.9)',
             borderColor: 'var(--accent-color)',
             color: 'var(--text-primary)'
           }}
         >
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
           <span>{isOpen ? 'Close Chat' : 'Click me to chat!'}</span>
         </motion.div>
 
@@ -286,8 +285,7 @@ export const MiniAIChatbot: React.FC = () => {
               className="flex items-center justify-between pb-3 mb-3 border-b shrink-0"
               style={{ borderColor: 'var(--bg-card-border)' }}
             >
-              <div className="flex items-center space-x-2.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+              <div className="flex items-center space-x-2">
                 <span className="font-sans font-bold text-sm sm:text-base" style={{ color: 'var(--text-primary)' }}>
                   JoeBot AI Assistant
                 </span>
