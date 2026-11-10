@@ -13,8 +13,9 @@ export const CertificatesSection: React.FC = () => {
     { id: 'all', label: 'All' },
     { id: 'ai', label: 'AI' },
     { id: 'blockchain', label: 'Blockchain' },
-    { id: 'software', label: 'Software' },
-    { id: 'cloud', label: 'Cloud' },
+    { id: 'database', label: 'Database' },
+    { id: 'engineering', label: 'Engineering' },
+    { id: 'entrepreneurship', label: 'Entrepreneurship' },
   ];
 
   const filteredCerts = activeCategory === 'all'
@@ -25,9 +26,10 @@ export const CertificatesSection: React.FC = () => {
     switch (cat) {
       case 'ai': return 'AI';
       case 'blockchain': return 'BLOCKCHAIN';
-      case 'cloud': return 'CLOUD & DEV';
-      case 'software': return 'SOFTWARE';
-      default: return 'ENGINEERING';
+      case 'database': return 'DATABASE';
+      case 'engineering': return 'ENGINEERING';
+      case 'entrepreneurship': return 'ENTREPRENEURSHIP';
+      default: return 'CREDENTIAL';
     }
   };
 
@@ -37,7 +39,7 @@ export const CertificatesSection: React.FC = () => {
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.08,
+        staggerChildren: 0.12,
         delayChildren: 0.05
       }
     }
@@ -106,62 +108,66 @@ export const CertificatesSection: React.FC = () => {
 
         {/* 
           COSMIC WARP & 3D VERTICAL ROTATION SCROLL ANIMATION:
-          - Cards emerge from deep infinity (scale: 0.05, opacity: 0, z: -800, rotateX: 90) like the starfield background.
-          - As you scroll down into view, they execute a smooth 3D vertical roll (rotateX: 0deg) and expand to scale: 1, locking into their positions.
-          - `viewport={{ once: true }}` guarantees that once settled, they stay fixed and never re-scatter when scrolling up, until page refresh.
+          - Cards start deep in infinity (tiny scale 0.05, z: -1000px, 90deg vertical roll, blur, 0 opacity).
+          - As the user scrolls into view, each card rolls forward in 3D vertically (rotateX: 0) and flies from depth to full scale (scale: 1, z: 0).
+          - once: true ensures they lock and settle permanently without dispersing when scrolling back up.
         */}
-        <motion.div 
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 [perspective:1400px]"
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.15 }}
-        >
-          {filteredCerts.map((cert, index) => {
-            const cardVariants = {
-              hidden: {
-                opacity: 0,
-                scale: 0.15,
-                y: 180,
-                rotateX: 85,
-                rotateY: (index % 3 - 1) * 15,
-                filter: 'blur(8px)'
-              },
-              visible: {
-                opacity: 1,
-                scale: 1,
-                y: 0,
-                rotateX: 0,
-                rotateY: 0,
-                filter: 'blur(0px)',
-                transition: {
-                  type: 'spring',
-                  damping: 20,
-                  stiffness: 90,
-                  mass: 0.85,
-                  duration: 0.9
+        <AnimatePresence mode="wait">
+          <motion.div 
+            key={activeCategory}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+            style={{ perspective: 1800, transformStyle: 'preserve-3d' }}
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.1 }}
+          >
+            {filteredCerts.map((cert, index) => {
+              const cardVariants = {
+                hidden: {
+                  opacity: 0,
+                  scale: 0.05,
+                  y: 120,
+                  z: -900,
+                  rotateX: 95,
+                  filter: 'blur(12px)'
+                },
+                visible: {
+                  opacity: 1,
+                  scale: 1,
+                  y: 0,
+                  z: 0,
+                  rotateX: 0,
+                  filter: 'blur(0px)',
+                  transition: {
+                    type: 'spring',
+                    damping: 18,
+                    stiffness: 70,
+                    mass: 0.9,
+                    duration: 1.1
+                  }
                 }
-              }
-            };
+              };
 
-            return (
-              <motion.div
-                key={cert.id}
-                variants={cardVariants}
-                onClick={() => setLightboxCert(cert)}
-                whileHover={{ 
-                  scale: 1.025, 
-                  y: -6,
-                  borderColor: 'var(--accent-color)',
-                  boxShadow: '0 20px 40px -10px var(--accent-glow)',
-                  transition: { duration: 0.25 }
-                }}
-                className="rounded-[26px] overflow-hidden border transition-colors duration-300 shadow-xl group cursor-pointer flex flex-col justify-between will-change-transform transform-gpu"
-                style={{
-                  backgroundColor: isLightMode ? '#FFFFFF' : 'var(--bg-card)',
-                  borderColor: 'var(--bg-card-border)'
-                }}
-              >
+              return (
+                <motion.div
+                  key={cert.id}
+                  variants={cardVariants}
+                  style={{
+                    backgroundColor: isLightMode ? '#FFFFFF' : 'var(--bg-card)',
+                    borderColor: 'var(--bg-card-border)',
+                    transformStyle: 'preserve-3d'
+                  }}
+                  onClick={() => setLightboxCert(cert)}
+                  whileHover={{ 
+                    scale: 1.03, 
+                    y: -8,
+                    borderColor: 'var(--accent-color)',
+                    boxShadow: '0 20px 40px -10px var(--accent-glow)',
+                    transition: { duration: 0.25 }
+                  }}
+                  className="rounded-[26px] overflow-hidden border transition-colors duration-300 shadow-xl group cursor-pointer flex flex-col justify-between will-change-transform transform-gpu"
+                >
                 {/* Top: Clean Container with Full Certificate Preview */}
                 <div 
                   className="relative aspect-[16/11] p-4 flex items-center justify-center overflow-hidden border-b transition-colors"
@@ -236,6 +242,7 @@ export const CertificatesSection: React.FC = () => {
             );
           })}
         </motion.div>
+        </AnimatePresence>
 
         {/* 
           FULLSCREEN HIGH-DEFINITION LIGHTBOX MODAL
