@@ -43,7 +43,7 @@ export const SkillsSection: React.FC = () => {
       opacity: 1,
       transition: {
         staggerChildren: 0.025,
-        delayChildren: 0.03
+        delayChildren: 0.02
       }
     }
   };
@@ -89,8 +89,9 @@ export const SkillsSection: React.FC = () => {
         </div>
 
         {/* 
-          COORDINATED SCATTER & ASSEMBLE ANIMATION:
-          - Uses `key={selectedCategory}` so when switching categories while standing still, cards immediately assemble into view without needing any scroll action!
+          SCATTER & ASSEMBLE SCROLL ANIMATION:
+          - Default "all" mode strictly animates in on scroll: cards start off-screen in "hidden" and only fly in when scrolling into the Skills section.
+          - When changing between categories, the cards also re-trigger and fly in smoothly from off-screen into their respective slots.
           - Scrolling away / out of viewport disperses them outward, and scrolling back into view re-assembles them from off-screen.
         */}
         <AnimatePresence mode="wait">
@@ -99,7 +100,6 @@ export const SkillsSection: React.FC = () => {
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5"
             variants={containerVariants}
             initial="hidden"
-            animate="visible"
             whileInView="visible"
             viewport={{ once: false, amount: 0.15 }}
           >
