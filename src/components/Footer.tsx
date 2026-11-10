@@ -14,7 +14,8 @@ export const Footer: React.FC = () => {
     <footer 
       className="border-t py-16 relative transition-colors duration-500"
       style={{
-        backgroundColor: 'var(--bg-secondary)',
+        backgroundColor: 'rgba(5, 8, 7, 0.65)',
+        backdropFilter: 'blur(10px)',
         borderColor: 'var(--bg-card-border)',
         color: 'var(--text-muted)'
       }}

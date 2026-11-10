@@ -14,7 +14,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onReplayIntro }) => {
     <section 
       id="home" 
       className="relative min-h-screen pt-28 pb-16 flex flex-col justify-center luxury-grid transition-colors duration-500 overflow-hidden"
-      style={{ backgroundColor: 'var(--bg-primary)' }}
+      style={{ backgroundColor: 'transparent' }}
     >
       {/* 3D Scene Background Canvas spanning the full Home section */}
       <Hero3DScene />

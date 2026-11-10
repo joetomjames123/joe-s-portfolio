@@ -14,6 +14,7 @@ import { Footer } from './components/Footer';
 import { ThemeCustomizer } from './components/Theme/ThemeCustomizer';
 import { CustomCursor } from './components/Cursor/CustomCursor';
 import { CinematicIntro } from './components/Intro/CinematicIntro';
+import { CosmicMeteorShower } from './components/Cosmic/CosmicMeteorShower';
 
 export const App: React.FC = () => {
   const [replayIntroCount, setReplayIntroCount] = useState<number>(0);
@@ -28,6 +29,9 @@ export const App: React.FC = () => {
       <CinematicIntro triggerReplay={replayIntroCount} />
 
       <div className="relative min-h-screen bg-obsidian-900 text-typography-primary selection:bg-emerald-accent selection:text-black font-sans transition-colors duration-500">
+        {/* Whole-website Cosmic 3D Starfield with smooth Zoom-In / Zoom-Out on scroll */}
+        <CosmicMeteorShower />
+
         {/* Custom Contextual Cursor */}
         <CustomCursor />
 

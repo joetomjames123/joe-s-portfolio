@@ -9,7 +9,7 @@ export const AboutSection: React.FC = () => {
   const { isLightMode } = useTheme();
 
   return (
-    <section id="about" className="py-28 relative border-t transition-colors duration-500" style={{ borderColor: 'var(--bg-card-border)', backgroundColor: 'var(--bg-primary)' }}>
+    <section id="about" className="py-28 relative border-t transition-colors duration-500" style={{ borderColor: 'var(--bg-card-border)', backgroundColor: 'transparent' }}>
       <div className="max-w-7xl mx-auto px-6 sm:px-8">
         {/* Section Header matching Screenshot: "01 —— A LITTLE ABOUT ME" */}
         <div className="flex items-center space-x-3 mb-16 pb-4 border-b" style={{ borderColor: 'var(--bg-card-border)' }}>

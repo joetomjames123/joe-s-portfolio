@@ -1,22 +1,10 @@
 import React, { useEffect, useRef } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 
-interface Meteor {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  length: number;
-  angle: number;
-  opacity: number;
-  fadeSpeed: number;
-  thickness: number;
-  color: string;
-}
-
 interface CosmicStar {
   x: number;
   y: number;
+  z: number; // depth
   radius: number;
   baseOpacity: number;
   blinkSpeed: number;
@@ -38,18 +26,19 @@ export const CosmicMeteorShower: React.FC = () => {
     let width = (canvas.width = window.innerWidth);
     let height = (canvas.height = window.innerHeight);
 
-    // 1. Generate lightweight, crisp starfield (180 stars, no shadowBlur to ensure 60-120 FPS on scroll)
-    const starCount = 200;
+    // 1. Generate 3D-feeling cosmic starfield dots across the whole page
+    const starCount = 300;
     const stars: CosmicStar[] = [];
     for (let i = 0; i < starCount; i++) {
       stars.push({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        radius: Math.random() * 1.2 + 0.4,
-        baseOpacity: Math.random() * 0.5 + 0.3,
+        x: (Math.random() - 0.5) * width * 1.5,
+        y: (Math.random() - 0.5) * height * 1.5,
+        z: Math.random() * 900 + 100, // 100 to 1000 depth
+        radius: Math.random() * 1.3 + 0.4,
+        baseOpacity: Math.random() * 0.5 + 0.35,
         blinkSpeed: Math.random() * 0.02 + 0.005,
         phase: Math.random() * Math.PI * 2,
-        color: Math.random() > 0.3 ? '#FFFFFF' : (activeAccentHex || '#8B5CF6')
+        color: Math.random() > 0.35 ? '#FFFFFF' : (activeAccentHex || '#8B5CF6')
       });
     }
 
@@ -57,135 +46,65 @@ export const CosmicMeteorShower: React.FC = () => {
       if (!canvas) return;
       width = canvas.width = window.innerWidth;
       height = canvas.height = window.innerHeight;
-      stars.forEach(s => {
-        s.x = Math.random() * width;
-        s.y = Math.random() * height;
-      });
     };
     window.addEventListener('resize', handleResize, { passive: true });
 
-    const activeMeteors: Meteor[] = [];
+    // Track scroll position for smooth zoom in / zoom out
+    let currentScroll = window.scrollY;
+    let targetScroll = window.scrollY;
 
-    // 2. Spawn meteors along varied paths across the site
-    const spawnMeteor = () => {
-      // Max 2 active meteors at once to maintain ultra-fast compositing
-      if (activeMeteors.length >= 2) return;
-
-      const pathType = Math.floor(Math.random() * 4);
-      let startX = 0;
-      let startY = 0;
-      let angle = 0;
-
-      if (pathType === 0) {
-        // Top-left to bottom-right
-        startX = Math.random() * (width * 0.7) - 60;
-        startY = Math.random() * (height * 0.2) - 40;
-        angle = (Math.PI / 180) * (38 + Math.random() * 20);
-      } else if (pathType === 1) {
-        // Top-right to bottom-left
-        startX = width * 0.4 + Math.random() * (width * 0.6);
-        startY = Math.random() * (height * 0.2) - 40;
-        angle = (Math.PI / 180) * (125 + Math.random() * 25);
-      } else if (pathType === 2) {
-        // Steep diagonal plunge
-        startX = Math.random() * width;
-        startY = -60;
-        angle = (Math.PI / 180) * (70 + Math.random() * 20);
-      } else {
-        // Shallow cross streak
-        startX = -60;
-        startY = Math.random() * (height * 0.5);
-        angle = (Math.PI / 180) * (20 + Math.random() * 15);
-      }
-
-      const speed = 18 + Math.random() * 14;
-      activeMeteors.push({
-        x: startX,
-        y: startY,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
-        length: 140 + Math.random() * 180,
-        angle,
-        opacity: 0.95,
-        fadeSpeed: 0.012 + Math.random() * 0.012,
-        thickness: 1.4 + Math.random() * 1.2,
-        color: Math.random() > 0.35 ? '#FFFFFF' : (activeAccentHex || '#8B5CF6')
-      });
+    const handleScroll = () => {
+      targetScroll = window.scrollY;
     };
-
-    let nextSpawnTimeout: any;
-    const scheduleNextMeteor = () => {
-      const delay = 3500 + Math.random() * 5000;
-      nextSpawnTimeout = setTimeout(() => {
-        spawnMeteor();
-        scheduleNextMeteor();
-      }, delay);
-    };
-
-    const initialTimeout: any = setTimeout(() => {
-      spawnMeteor();
-      scheduleNextMeteor();
-    }, 1000);
+    window.addEventListener('scroll', handleScroll, { passive: true });
 
     let time = 0;
     const render = () => {
-      time += 0.016;
+      time += 0.015;
+
+      // Smooth scroll interpolation for fluid zooming response
+      currentScroll += (targetScroll - currentScroll) * 0.08;
+
       ctx.clearRect(0, 0, width, height);
 
-      // A. Starfield: fast batch render without heavy shadowBlur or save/restore overhead
+      const centerX = width / 2;
+      const centerY = height / 2;
+
+      // Zoom factor: scrolling down zooms in, scrolling up zooms out
+      // (currentScroll * 0.8 smoothly moves stars toward the camera)
+      const scrollOffset = currentScroll * 0.75;
+
       for (let i = 0; i < stars.length; i++) {
         const star = stars[i];
+
+        // Star's dynamic Z depth based on scroll
+        // Using modulo arithmetic so stars seamlessly warp and cycle when scrolling infinitely
+        const cycle = 900;
+        let adjustedZ = ((star.z - scrollOffset) % cycle + cycle) % cycle + 50;
+
+        // Perspective projection
+        const fov = 400;
+        const scale = fov / (fov + adjustedZ);
+        const projectedX = centerX + star.x * scale;
+        const projectedY = centerY + star.y * scale;
+
+        // Skip if out of viewport
+        if (projectedX < -50 || projectedX > width + 50 || projectedY < -50 || projectedY > height + 50) {
+          continue;
+        }
+
         const twinkle = Math.sin(time * star.blinkSpeed * 100 + star.phase);
         const currentOpacity = star.baseOpacity + twinkle * 0.25;
-        if (currentOpacity <= 0.05) continue;
 
-        ctx.globalAlpha = Math.max(0.12, Math.min(0.9, currentOpacity));
+        // Stars closer to viewer (smaller adjustedZ / higher scale) appear brighter and larger
+        const depthAlpha = Math.min(1, Math.max(0.1, 1 - adjustedZ / 950));
+        const finalAlpha = Math.max(0.08, Math.min(0.95, currentOpacity * depthAlpha));
+
+        ctx.globalAlpha = finalAlpha;
         ctx.fillStyle = star.color;
         ctx.beginPath();
-        ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+        ctx.arc(projectedX, projectedY, Math.max(0.5, star.radius * scale * 2.2), 0, Math.PI * 2);
         ctx.fill();
-      }
-
-      // B. Meteors: clean linear gradient streak with zero shadowBlur lag
-      for (let i = activeMeteors.length - 1; i >= 0; i--) {
-        const m = activeMeteors[i];
-        const tailX = m.x - Math.cos(m.angle) * m.length;
-        const tailY = m.y - Math.sin(m.angle) * m.length;
-
-        const gradient = ctx.createLinearGradient(tailX, tailY, m.x, m.y);
-        gradient.addColorStop(0, 'rgba(255, 255, 255, 0)');
-        gradient.addColorStop(0.65, `${m.color}${Math.floor(m.opacity * 180).toString(16).padStart(2, '0')}`);
-        gradient.addColorStop(1, '#FFFFFF');
-
-        ctx.globalAlpha = Math.max(0, Math.min(1, m.opacity));
-        ctx.beginPath();
-        ctx.moveTo(tailX, tailY);
-        ctx.lineTo(m.x, m.y);
-        ctx.strokeStyle = gradient;
-        ctx.lineWidth = m.thickness;
-        ctx.lineCap = 'round';
-        ctx.stroke();
-
-        // Crisp White Core Head
-        ctx.beginPath();
-        ctx.arc(m.x, m.y, m.thickness * 1.2, 0, Math.PI * 2);
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fill();
-
-        // Update Position
-        m.x += m.vx;
-        m.y += m.vy;
-        m.opacity -= m.fadeSpeed;
-
-        if (
-          m.y > height + 200 || 
-          m.y < -200 || 
-          m.x > width + 200 || 
-          m.x < -200 || 
-          m.opacity <= 0
-        ) {
-          activeMeteors.splice(i, 1);
-        }
       }
 
       ctx.globalAlpha = 1;
@@ -196,18 +115,17 @@ export const CosmicMeteorShower: React.FC = () => {
 
     return () => {
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('scroll', handleScroll);
       cancelAnimationFrame(animationFrameId);
-      clearTimeout(initialTimeout);
-      clearTimeout(nextSpawnTimeout);
     };
   }, [activeAccentHex, isLightMode]);
 
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 pointer-events-none z-0 w-full h-full transform-gpu will-change-transform"
+      className="fixed inset-0 pointer-events-none z-0 w-full h-full transform-gpu"
       style={{
-        opacity: isLightMode ? 0.35 : 0.95
+        opacity: isLightMode ? 0.35 : 0.92
       }}
     />
   );

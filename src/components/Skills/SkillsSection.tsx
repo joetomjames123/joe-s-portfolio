@@ -13,7 +13,7 @@ export const SkillsSection: React.FC = () => {
     : SKILLS_PILLS.filter((s) => s.category === selectedCategory);
 
   return (
-    <section id="skills" className="py-28 relative border-t border-white/5 overflow-hidden transition-colors duration-500" style={{ backgroundColor: 'var(--bg-primary)' }}>
+    <section id="skills" className="py-28 relative border-t border-white/5 overflow-hidden transition-colors duration-500" style={{ backgroundColor: 'transparent' }}>
       {/* Background ambient lighting */}
       <div 
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] rounded-full blur-[140px] pointer-events-none transition-all duration-700" 

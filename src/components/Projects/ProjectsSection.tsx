@@ -26,7 +26,7 @@ export const ProjectsSection: React.FC = () => {
       id="projects" 
       className="py-28 relative border-t transition-colors duration-500"
       style={{
-        backgroundColor: 'var(--bg-primary)',
+        backgroundColor: 'transparent',
         borderColor: 'var(--bg-card-border)'
       }}
     >
