@@ -1,24 +1,13 @@
-import React, { useEffect, useRef, useState, useMemo } from 'react';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { Award, ExternalLink, X } from 'lucide-react';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Award, ZoomIn, X, ExternalLink } from 'lucide-react';
 import { CERTIFICATES_DATA, CertificateItem } from '../../data/certificates';
 import { useTheme } from '../../contexts/ThemeContext';
-import { CertificateCard } from './CertificateCard';
-
-gsap.registerPlugin(ScrollTrigger);
 
 export const CertificatesSection: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [lightboxCert, setLightboxCert] = useState<CertificateItem | null>(null);
-  const [animationCompleted, setAnimationCompleted] = useState<boolean>(false);
   const { isLightMode } = useTheme();
-
-  const sectionRef = useRef<HTMLElement>(null);
-  const pinWrapperRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
-  const galleryRef = useRef<HTMLDivElement>(null);
 
   const categories = [
     { id: 'all', label: 'All' },
@@ -29,11 +18,9 @@ export const CertificatesSection: React.FC = () => {
     { id: 'entrepreneurship', label: 'Entrepreneurship' },
   ];
 
-  const filteredCerts = useMemo(() => {
-    return activeCategory === 'all'
-      ? CERTIFICATES_DATA
-      : CERTIFICATES_DATA.filter((c) => c.category === activeCategory);
-  }, [activeCategory]);
+  const filteredCerts = activeCategory === 'all'
+    ? CERTIFICATES_DATA
+    : CERTIFICATES_DATA.filter((c) => c.category === activeCategory);
 
   const getTagFromCategory = (cat: string) => {
     switch (cat) {
@@ -46,588 +33,238 @@ export const CertificatesSection: React.FC = () => {
     }
   };
 
-  // 1. Cosmic Starfield Canvas with Dynamic Scroll Zoom
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    let animId: number;
-    let width = (canvas.width = canvas.parentElement?.offsetWidth || window.innerWidth);
-    let height = (canvas.height = canvas.parentElement?.offsetHeight || window.innerHeight);
-
-    const handleResize = () => {
-      if (!canvas || !canvas.parentElement) return;
-      width = canvas.width = canvas.parentElement.offsetWidth;
-      height = canvas.height = canvas.parentElement.offsetHeight;
-    };
-    window.addEventListener('resize', handleResize);
-
-    const starCount = 300;
-    const stars = Array.from({ length: starCount }, () => {
-      const origX = (Math.random() - 0.5) * width * 1.8;
-      const origY = (Math.random() - 0.5) * height * 1.8;
-      const dist = Math.sqrt(origX * origX + origY * origY);
-      return {
-        x: origX,
-        y: origY,
-        z: Math.random() * 800 + 100,
-        radius: Math.random() * 1.5 + 0.4,
-        color: Math.random() > 0.6 ? '#10B981' : Math.random() > 0.3 ? '#A7F3D0' : '#E2E8F0',
-        alpha: Math.random() * 0.7 + 0.3,
-        orbitRadius: dist,
-        orbitAngle: Math.atan2(origY, origX),
-        orbitSpeed: (Math.random() * 0.0008 + 0.0004) * (Math.random() > 0.5 ? 1 : -1)
-      };
-    });
-
-    let currentScroll = window.scrollY;
-    let targetScroll = window.scrollY;
-
-    const handleScroll = () => {
-      targetScroll = window.scrollY;
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-
-    let time = 0;
-    const render = () => {
-      time += 0.015;
-      currentScroll += (targetScroll - currentScroll) * 0.08;
-
-      ctx.clearRect(0, 0, width, height);
-
-      const centerX = width / 2;
-      const centerY = height / 2;
-
-      // Cosmic background gradient
-      const grad = ctx.createRadialGradient(width * 0.4, height * 0.5, 50, width * 0.5, height * 0.5, width * 0.85);
-      if (isLightMode) {
-        grad.addColorStop(0, 'rgba(240, 253, 250, 0.95)');
-        grad.addColorStop(0.5, 'rgba(226, 232, 240, 0.9)');
-        grad.addColorStop(1, 'rgba(203, 213, 225, 0.98)');
-      } else {
-        grad.addColorStop(0, 'rgba(4, 28, 22, 0.5)');
-        grad.addColorStop(0.4, 'rgba(8, 14, 22, 0.85)');
-        grad.addColorStop(1, 'rgba(2, 4, 8, 0.98)');
-      }
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, width, height);
-
-      // Scroll-driven 3D starfield zoom: scrolling down zooms in, scrolling up zooms out
-      const scrollZoom = currentScroll * 0.85;
-      const cycle = 850;
-
-      for (const s of stars) {
-        s.orbitAngle += s.orbitSpeed;
-        const curX = Math.cos(s.orbitAngle) * s.orbitRadius;
-        const curY = Math.sin(s.orbitAngle) * s.orbitRadius;
-
-        // Dynamic Z depth with scroll zoom
-        let adjustedZ = ((s.z - scrollZoom) % cycle + cycle) % cycle + 40;
-
-        // 3D Perspective Projection
-        const fov = 400;
-        const scale = fov / (fov + adjustedZ);
-        const projX = centerX + curX * scale;
-        const projY = centerY + curY * scale;
-
-        if (projX < -50 || projX > width + 50 || projY < -50 || projY > height + 50) continue;
-
-        ctx.beginPath();
-        const starSize = Math.max(0.6, s.radius * scale * 2.2);
-        ctx.arc(projX, projY, starSize, 0, Math.PI * 2);
-        ctx.fillStyle = s.color;
-        ctx.globalAlpha = Math.min(1, Math.max(0.2, (1 - adjustedZ / 900) * s.alpha));
-        ctx.shadowBlur = 4;
-        ctx.shadowColor = s.color;
-        ctx.fill();
-        ctx.shadowBlur = 0;
-      }
-      ctx.globalAlpha = 1;
-
-      animId = requestAnimationFrame(render);
-    };
-
-    render();
-
-    return () => {
-      cancelAnimationFrame(animId);
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, [isLightMode]);
-
-  // 2. Center-Left Curved Entry, Revolution, and Direct Placement
-  useEffect(() => {
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (prefersReducedMotion) {
-      setAnimationCompleted(true);
-      return;
-    }
-
-    if (animationCompleted) return;
-
-    const section = sectionRef.current;
-    const pinWrapper = pinWrapperRef.current;
-    const cardEls = cardsRef.current.filter(Boolean) as HTMLDivElement[];
-
-    if (!section || !pinWrapper || cardEls.length === 0) return;
-
-    const N = cardEls.length;
-    const isMobile = window.innerWidth < 768;
-    const isTablet = window.innerWidth >= 768 && window.innerWidth < 1024;
-
-    // Compact, refined certificate card size
-    const cols = isMobile ? 1 : isTablet ? 2 : 3;
-    const cardWidth = isMobile ? 275 : isTablet ? 290 : 310; // Perfectly proportioned compact card
-    const cardHeight = 230; // Clean height
-    const gapX = isMobile ? 0 : 28;
-    const gapY = 22;
-
-    // Fixed 3D Orbit Axis coordinates
-    const orbitRadiusX = isMobile ? 260 : isTablet ? 380 : 470;
-    const orbitRadiusZ = isMobile ? 230 : isTablet ? 320 : 390;
-    const orbitCenterY = 15;
-
-    // Exact grid target positions with perfect symmetric spacing (3x3 on desktop)
-    const totalGridWidth = cols * cardWidth + (cols - 1) * gapX;
-    const gridStartX = -totalGridWidth / 2 + cardWidth / 2;
-
-    const targetPositions = cardEls.map((_, i) => {
-      const c = i % cols;
-      const r = Math.floor(i / cols);
-      return {
-        x: gridStartX + c * (cardWidth + gapX),
-        y: (r - (Math.ceil(N / cols) - 1) / 2) * (cardHeight + gapY) + 20
-      };
-    });
-
-    const ctx = gsap.context(() => {
-      // Helper function for fixed orbit coordinates
-      const getOrbitState = (angleDeg: number) => {
-        const rad = (angleDeg * Math.PI) / 180;
-        return {
-          x: Math.sin(rad) * orbitRadiusX,
-          z: Math.cos(rad) * orbitRadiusZ - 80,
-          rotateY: angleDeg,
-          rotateZ: 0,
-          rotateX: 0
-        };
-      };
-
-      // Initial card setup: starts offscreen from CENTER-LEFT (y: 0, x: far left)
-      cardEls.forEach((card) => {
-        gsap.set(card, {
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          xPercent: -50,
-          yPercent: -50,
-          width: cardWidth,
-          x: -window.innerWidth - 250, // Starts offscreen Center-Left
-          y: 0,                        // Direct Center alignment on Y-axis
-          z: -450,
-          scale: 1.0,                  // Exact 1.0 size maintained throughout
-          opacity: 0,
-          filter: 'blur(5px)',
-          rotateX: 0,
-          rotateY: -35,                // Banked tangent along curved trajectory
-          rotateZ: 0,
-          transformPerspective: 2200,
-          transformStyle: 'preserve-3d',
-          transformOrigin: '50% 50%',
-          willChange: 'transform, opacity, filter'
-        });
-      });
-
-      // Master Timeline driven directly by scrolling
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: section,
-          start: 'top top',
-          end: '+=4400',
-          pin: pinWrapper,
-          scrub: 1.2,
-          anticipatePin: 1,
-          onLeave: () => {
-            // Permanently lock completed state so scroll smoothly resumes to Creative Studio & next sections
-            setAnimationCompleted(true);
-            ScrollTrigger.refresh();
-          }
-        }
-      });
-
-      const entryDuration = 0.95;
-      const stagger = 0.65;
-      const totalRevolutionsAngle = 540;
-
-      /* =========================================================================
-         STAGE 1 & 2: CERTIFICATES COME FROM THE CENTER-LEFT FORMING A NATURAL
-         CURVED PATH INTO THE REVOLUTION ORBIT.
-         AS EACH CARD REVOLVES, THE NEXT CARD JOINS IN THE ORBIT.
-         ========================================================================= */
-      cardEls.forEach((card, i) => {
-        const arrivalStartTime = 0.35 + i * stagger;
-        const entryEndState = getOrbitState(0);
-
-        // 1. Curved trajectory from Center-Left into Orbit
-        tl.to(
-          card,
-          {
-            x: -window.innerWidth * 0.22,
-            y: 50, // Dips slightly in natural aerodynamic curve
-            z: -180,
-            scale: 1.0,
-            opacity: 1,
-            filter: 'blur(0px)',
-            rotateX: 2,
-            rotateY: -15,
-            duration: entryDuration * 0.5,
-            ease: 'power1.out'
-          },
-          arrivalStartTime
-        );
-
-        // 2. Smoothly aligns into the fixed revolution orbit
-        tl.to(
-          card,
-          {
-            x: entryEndState.x,
-            y: orbitCenterY,
-            z: entryEndState.z,
-            scale: 1.0,
-            opacity: 1,
-            rotateX: 0,
-            rotateY: 0,
-            duration: entryDuration * 0.5,
-            ease: 'power1.inOut'
-          },
-          arrivalStartTime + entryDuration * 0.5
-        );
-
-        // 3. Continuous revolution on fixed axis while subsequent cards join
-        const revolutionStartTime = arrivalStartTime + entryDuration;
-        const revolutionEndTime = 0.35 + N * stagger + entryDuration + 2.2;
-        const revolutionDuration = revolutionEndTime - revolutionStartTime;
-
-        const orbitTracker = { angle: 0 };
-        tl.to(
-          orbitTracker,
-          {
-            angle: totalRevolutionsAngle,
-            duration: revolutionDuration,
-            ease: 'none',
-            onUpdate: () => {
-              const st = getOrbitState(orbitTracker.angle);
-              gsap.set(card, {
-                x: st.x,
-                y: orbitCenterY,
-                z: st.z,
-                scale: 1.0,
-                rotateY: st.rotateY,
-                rotateX: st.rotateX,
-                rotateZ: st.rotateZ
-              });
-            }
-          },
-          revolutionStartTime
-        );
-      });
-
-      const allRevolvingEndTime = 0.35 + N * stagger + entryDuration + 2.2;
-
-      /* =========================================================================
-         STAGE 3: DIRECT SEQUENTIAL PLACEMENT WITH PERFECT SPACING
-         Once all certificates have joined the revolution, they glide one by one
-         directly into their actual positions in the grid.
-         ========================================================================= */
-      let placeTime = allRevolvingEndTime + 0.2;
-
-      cardEls.forEach((card, i) => {
-        const target = targetPositions[i];
-
-        // Directly glides from orbit to its exact gallery position in the exact same compact size
-        tl.to(
-          card,
-          {
-            x: target.x,
-            y: target.y,
-            z: 0, // Lands flat in position
-            scale: 1.0, // EXACT SAME COMPACT SIZE
-            rotateX: 0,
-            rotateY: 0,
-            rotateZ: 0,
-            duration: 0.85,
-            ease: 'power2.out'
-          },
-          placeTime
-        );
-
-        placeTime += 0.85; // One by one sequential placement
-      });
-
-      // Seamless buffer at the end so scrolling smoothly releases into the Creative Studio
-      tl.to({}, { duration: 0.6 }, placeTime + 0.3);
-    }, section);
-
-    return () => {
-      ctx.revert();
-    };
-  }, [animationCompleted, filteredCerts]);
-
   return (
     <section 
       id="certificates" 
-      ref={sectionRef}
-      className="relative border-t transition-colors duration-500 overflow-hidden"
+      className="py-24 relative border-t transition-colors duration-500 overflow-hidden"
       style={{
-        backgroundColor: 'var(--bg-primary, #050505)',
-        borderColor: 'var(--bg-card-border, rgba(255, 255, 255, 0.1))',
-        minHeight: animationCompleted ? 'auto' : '100vh',
-        paddingBottom: animationCompleted ? '6rem' : 0
+        backgroundColor: 'transparent',
+        borderColor: 'var(--bg-card-border)'
       }}
     >
-      {/* Deep Infinite Space Canvas Background (Zooms dynamically on scroll) */}
-      <div className="absolute inset-0 w-full h-full pointer-events-none -z-10 overflow-hidden">
-        <canvas ref={canvasRef} className="w-full h-full block" />
-      </div>
-
-      {/* 
-        IF ANIMATION ALREADY COMPLETED:
-        Render settled responsive gallery directly in the exact same compact size with perfect spacing.
-      */}
-      {animationCompleted ? (
-        <div ref={galleryRef} className="max-w-6xl mx-auto px-6 sm:px-8 w-full pt-16 sm:pt-20 pb-12 z-20 relative">
-          
-          {/* Header Section (Always Visible) */}
-          <div 
-            className="flex flex-col md:flex-row md:items-end justify-between mb-8 pb-3 border-b transition-colors w-full"
-            style={{ borderColor: 'var(--bg-card-border, rgba(255, 255, 255, 0.1))' }}
-          >
-            <div>
-              <div className="flex items-center space-x-3 mb-1.5">
-                <span className="font-mono text-xs font-bold" style={{ color: 'var(--accent-color, #10B981)' }}>05</span>
-                <span className="w-8 h-[1px]" style={{ backgroundColor: 'var(--bg-card-border, rgba(255, 255, 255, 0.1))' }} />
-                <span className="font-mono text-xs uppercase tracking-widest" style={{ color: 'var(--text-muted, #94A3B8)' }}>
-                  CERTIFICATIONS
-                </span>
-              </div>
-              <h2 
-                className="font-sans text-2xl sm:text-4xl font-semibold tracking-tight transition-colors"
-                style={{ color: 'var(--text-primary, #FFFFFF)' }}
-              >
-                Certificates & Licenses
-              </h2>
-            </div>
-
-            {/* Category Filter Pills */}
-            <div className="flex flex-wrap gap-2 mt-3 md:mt-0">
-              {categories.map((cat) => {
-                const isSelected = activeCategory === cat.id;
-                return (
-                  <button
-                    key={cat.id}
-                    onClick={() => setActiveCategory(cat.id)}
-                    className="px-3 py-1.2 rounded-full text-xs font-mono transition-all duration-200 border cursor-pointer"
-                    style={{
-                      backgroundColor: isSelected 
-                        ? 'var(--text-primary, #FFFFFF)' 
-                        : (isLightMode ? '#FFFFFF' : 'rgba(255, 255, 255, 0.05)'),
-                      color: isSelected 
-                        ? (isLightMode ? '#FFFFFF' : '#000000') 
-                        : 'var(--text-secondary, #94A3B8)',
-                      borderColor: isSelected 
-                        ? 'var(--text-primary, #FFFFFF)' 
-                        : 'var(--bg-card-border, rgba(255, 255, 255, 0.1))',
-                      fontWeight: isSelected ? 600 : 400
-                    }}
-                  >
-                    {cat.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Final Settled Gallery Grid (Exactly matching compact cards with perfect spacing) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7 w-full">
-            {filteredCerts.map((cert) => (
-              <CertificateCard
-                key={cert.id}
-                cert={cert}
-                isLightMode={isLightMode}
-                getTagFromCategory={getTagFromCategory}
-                onSelect={() => setLightboxCert(cert)}
-                className="hover:scale-[1.025] hover:-translate-y-1 transition-transform duration-300"
-              />
-            ))}
-          </div>
-
-        </div>
-      ) : (
-        /* 
-          PINNED SCROLL ARENA:
-          - Pinned during animation
-          - Cards come from center-left, revolve continuously on 3D axis, then place one-by-one
-          - Unpins smoothly to continue with Creative Corner / Studio
-        */
+      <div className="max-w-7xl mx-auto px-6 sm:px-8">
+        
+        {/* Section Header */}
         <div 
-          ref={pinWrapperRef}
-          className="h-screen w-full flex flex-col justify-between overflow-hidden pt-10 pb-6 max-w-6xl mx-auto px-6 sm:px-8 relative z-20"
+          className="flex flex-col md:flex-row md:items-end justify-between mb-12 pb-6 border-b transition-colors"
+          style={{ borderColor: 'var(--bg-card-border)' }}
         >
-          {/* Header Section (STATIONARY & ALWAYS VISIBLE) */}
-          <div 
-            className="flex flex-col md:flex-row md:items-end justify-between mb-3 pb-3 border-b transition-colors w-full z-30 relative"
-            style={{ borderColor: 'var(--bg-card-border, rgba(255, 255, 255, 0.1))' }}
-          >
-            <div>
-              <div className="flex items-center space-x-3 mb-1.5">
-                <span className="font-mono text-xs font-bold" style={{ color: 'var(--accent-color, #10B981)' }}>05</span>
-                <span className="w-8 h-[1px]" style={{ backgroundColor: 'var(--bg-card-border, rgba(255, 255, 255, 0.1))' }} />
-                <span className="font-mono text-xs uppercase tracking-widest" style={{ color: 'var(--text-muted, #94A3B8)' }}>
-                  CERTIFICATIONS
-                </span>
-              </div>
-              <h2 
-                className="font-sans text-2xl sm:text-4xl font-semibold tracking-tight transition-colors"
-                style={{ color: 'var(--text-primary, #FFFFFF)' }}
-              >
-                Certificates & Licenses
-              </h2>
+          <div>
+            <div className="flex items-center space-x-3 mb-3">
+              <span className="font-mono text-xs font-bold" style={{ color: 'var(--accent-color)' }}>05</span>
+              <span className="w-8 h-[1px]" style={{ backgroundColor: 'var(--bg-card-border)' }} />
+              <span className="font-mono text-xs uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
+                CERTIFICATIONS
+              </span>
             </div>
-
-            {/* Category Filter Pills */}
-            <div className="flex flex-wrap gap-2 mt-3 md:mt-0">
-              {categories.map((cat) => {
-                const isSelected = activeCategory === cat.id;
-                return (
-                  <button
-                    key={cat.id}
-                    onClick={() => setActiveCategory(cat.id)}
-                    className="px-3 py-1.2 rounded-full text-xs font-mono transition-all duration-200 border cursor-pointer"
-                    style={{
-                      backgroundColor: isSelected 
-                        ? 'var(--text-primary, #FFFFFF)' 
-                        : (isLightMode ? '#FFFFFF' : 'rgba(255, 255, 255, 0.05)'),
-                      color: isSelected 
-                        ? (isLightMode ? '#FFFFFF' : '#000000') 
-                        : 'var(--text-secondary, #94A3B8)',
-                      borderColor: isSelected 
-                        ? 'var(--text-primary, #FFFFFF)' 
-                        : 'var(--bg-card-border, rgba(255, 255, 255, 0.1))',
-                      fontWeight: isSelected ? 600 : 400
-                    }}
-                  >
-                    {cat.label}
-                  </button>
-                );
-              })}
-            </div>
+            <h2 
+              className="font-sans text-4xl sm:text-6xl font-semibold tracking-tight transition-colors"
+              style={{ color: 'var(--text-primary)' }}
+            >
+              Certificates & Licenses
+            </h2>
           </div>
 
-          {/* 3D Spatial Arena */}
-          <div 
-            className="relative flex-1 w-full flex items-center justify-center overflow-visible"
-            style={{
-              perspective: '2200px',
-              perspectiveOrigin: '50% 50%',
-              transformStyle: 'preserve-3d'
-            }}
-          >
-            {filteredCerts.map((cert, index) => (
-              <div
-                key={cert.id}
-                ref={(el) => (cardsRef.current[index] = el)}
-                style={{
-                  transformStyle: 'preserve-3d',
-                  pointerEvents: 'auto'
-                }}
+          {/* Category Filter Pills */}
+          <div className="flex flex-wrap gap-2 mt-6 md:mt-0">
+            {categories.map((cat) => {
+              const isSelected = activeCategory === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setActiveCategory(cat.id)}
+                  className="px-3.5 py-1.5 rounded-full text-xs font-mono transition-all duration-200 border cursor-pointer"
+                  style={{
+                    backgroundColor: isSelected 
+                      ? 'var(--text-primary)' 
+                      : (isLightMode ? '#FFFFFF' : 'rgba(255, 255, 255, 0.05)'),
+                    color: isSelected 
+                      ? (isLightMode ? '#FFFFFF' : '#000000') 
+                      : 'var(--text-secondary)',
+                    borderColor: isSelected 
+                      ? 'var(--text-primary)' 
+                      : 'var(--bg-card-border)',
+                    fontWeight: isSelected ? 600 : 400
+                  }}
+                >
+                  {cat.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* 
+          CLEAN STILL CERTIFICATE GALLERY WITH HOVER ZOOM EFFECT
+          Still in place, no scroll pinning or shifting: moving cursor onto any card provides smooth hover zoom
+        */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {filteredCerts.map((cert) => (
+            <motion.div
+              key={cert.id}
+              onClick={() => setLightboxCert(cert)}
+              whileHover={{ 
+                scale: 1.045, 
+                y: -8,
+                borderColor: 'var(--accent-color)',
+                boxShadow: '0 25px 50px -12px var(--accent-glow, rgba(16, 185, 129, 0.35))',
+                transition: { duration: 0.25, ease: 'easeOut' }
+              }}
+              whileTap={{ scale: 0.98 }}
+              className="rounded-[24px] overflow-hidden border transition-all duration-300 shadow-xl group cursor-pointer flex flex-col justify-between"
+              style={{
+                backgroundColor: isLightMode ? '#FFFFFF' : 'var(--bg-card)',
+                borderColor: 'var(--bg-card-border)'
+              }}
+            >
+              {/* Top: Certificate Image Preview with Zoom Cue on Hover */}
+              <div 
+                className="relative aspect-[16/11] p-4 flex items-center justify-center overflow-hidden border-b transition-colors bg-white"
+                style={{ borderColor: 'var(--bg-card-border)' }}
               >
-                <CertificateCard
-                  cert={cert}
-                  isLightMode={isLightMode}
-                  getTagFromCategory={getTagFromCategory}
-                  onSelect={() => setLightboxCert(cert)}
+                <img
+                  src={cert.imageSrc}
+                  alt={cert.title}
+                  className="w-full h-full object-contain group-hover:scale-108 transition-transform duration-300 pointer-events-none"
+                  loading="lazy"
                 />
-              </div>
-            ))}
-          </div>
-
-          {/* Bottom subtle status bar */}
-          <div className="w-full flex items-center justify-between text-[11px] font-mono text-typography-muted opacity-60 z-30 pt-2">
-            <span className="flex items-center space-x-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>SCROLL TO ADVANCE 3D REVOLUTION & DIRECT PLACEMENT</span>
-            </span>
-            <span>{filteredCerts.length} CREDENTIALS IN COSMOS</span>
-          </div>
-        </div>
-      )}
-
-      {/* Lightbox Modal (Click to View Fullscreen) */}
-      {lightboxCert && (
-        <div 
-          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-xl flex items-center justify-center p-4 sm:p-8"
-          onClick={() => setLightboxCert(null)}
-        >
-          <div 
-            className="relative max-w-5xl w-full max-h-[90vh] bg-obsidian-900 rounded-3xl border border-white/10 overflow-hidden shadow-2xl flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="p-4 sm:p-6 border-b border-white/10 flex items-center justify-between bg-black/40">
-              <div className="flex items-center space-x-3">
-                <Award className="w-5 h-5 text-emerald-400" />
-                <div>
-                  <h3 className="font-serif text-lg sm:text-xl text-white font-normal truncate max-w-md">
-                    {lightboxCert.title}
-                  </h3>
-                  <p className="font-mono text-xs text-typography-muted">
-                    {lightboxCert.issuer} {lightboxCert.issueDate ? `• ${lightboxCert.issueDate}` : ''}
-                  </p>
+                
+                {/* Hover Quick Zoom Cue */}
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                  <div className="px-4 py-2 rounded-full bg-black/85 border border-white/20 text-white font-mono text-xs flex items-center space-x-2 backdrop-blur-md shadow-2xl group-hover:scale-105 transition-transform">
+                    <ZoomIn className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>VIEW FULLSCREEN</span>
+                  </div>
                 </div>
               </div>
-              <button
-                onClick={() => setLightboxCert(null)}
-                className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-white transition-colors cursor-pointer"
+
+              {/* Bottom: Metadata Footer */}
+              <div 
+                className="p-6 flex flex-col justify-between flex-1 space-y-4 transition-colors"
+                style={{
+                  backgroundColor: isLightMode ? 'var(--bg-secondary)' : 'var(--bg-card)'
+                }}
               >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+                <div>
+                  {/* Category Tag */}
+                  <span className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-[#E08A56] block mb-2">
+                    {getTagFromCategory(cert.category)}
+                  </span>
 
-            <div className="flex-1 overflow-auto p-4 sm:p-8 flex items-center justify-center bg-black/60">
-              <img
-                src={lightboxCert.imageSrc}
-                alt={lightboxCert.title}
-                className="max-h-[60vh] w-auto object-contain rounded-xl shadow-2xl border border-white/10"
-              />
-            </div>
+                  {/* Title */}
+                  <h4 
+                    className="font-serif text-xl sm:text-2xl font-medium leading-snug group-hover:text-emerald-400 transition-colors line-clamp-2"
+                    style={{ color: 'var(--text-primary)' }}
+                  >
+                    {cert.title}
+                  </h4>
 
-            <div className="p-6 bg-obsidian-950 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="space-y-1">
-                <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#E08A56]">
-                  {getTagFromCategory(lightboxCert.category)}
-                </span>
-                <p className="text-sm text-typography-muted max-w-2xl">
-                  {lightboxCert.description}
-                </p>
-                {lightboxCert.credentialId && (
-                  <p className="font-mono text-xs text-emerald-400">
-                    ID: {lightboxCert.credentialId}
+                  {/* Issuer */}
+                  <p 
+                    className="font-sans text-sm mt-1.5 line-clamp-1"
+                    style={{ color: 'var(--text-secondary)' }}
+                  >
+                    {cert.issuer}
                   </p>
-                )}
+                </div>
+
+                {/* Footer details: Date & Verified Credential */}
+                <div 
+                  className="pt-4 border-t flex items-center justify-between text-xs font-mono transition-colors"
+                  style={{ borderColor: 'var(--bg-card-border)' }}
+                >
+                  <span style={{ color: 'var(--text-muted)' }}>
+                    {cert.issueDate || '2026'}
+                  </span>
+                  <span 
+                    className="flex items-center space-x-1.5 font-semibold"
+                    style={{ color: 'var(--accent-color)' }}
+                  >
+                    <Award className="w-3.5 h-3.5" />
+                    <span>VERIFIED CREDENTIAL</span>
+                  </span>
+                </div>
               </div>
-              <button
-                onClick={() => window.open(lightboxCert.imageSrc, '_blank')}
-                className="px-5 py-2.5 rounded-full bg-emerald-400 text-black font-mono text-xs font-semibold hover:bg-emerald-300 transition-colors flex items-center justify-center space-x-2 shrink-0 cursor-pointer shadow-lg"
-              >
-                <span>OPEN ORIGINAL FILE</span>
-                <ExternalLink className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
+            </motion.div>
+          ))}
         </div>
-      )}
+      </div>
+
+      {/* Fullscreen HD Lightbox Modal */}
+      <AnimatePresence>
+        {lightboxCert && (
+          <div 
+            className="fixed inset-0 z-50 bg-black/95 backdrop-blur-xl flex items-center justify-center p-4 sm:p-8"
+            onClick={() => setLightboxCert(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative max-w-5xl w-full max-h-[90vh] bg-obsidian-900 border border-white/15 rounded-3xl overflow-hidden shadow-2xl flex flex-col"
+            >
+              {/* Modal Header */}
+              <div className="p-4 sm:p-6 border-b border-white/10 flex items-center justify-between bg-black/40">
+                <div className="flex items-center space-x-3">
+                  <Award className="w-5 h-5 text-emerald-400" />
+                  <div>
+                    <h3 className="font-serif text-lg sm:text-xl text-white font-normal truncate max-w-md">
+                      {lightboxCert.title}
+                    </h3>
+                    <p className="font-mono text-xs text-typography-muted">
+                      {lightboxCert.issuer} {lightboxCert.issueDate ? `• ${lightboxCert.issueDate}` : ''}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setLightboxCert(null)}
+                  className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-white transition-colors cursor-pointer"
+                  aria-label="Close"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Full Image Display Container */}
+              <div className="flex-1 overflow-auto p-4 sm:p-8 flex items-center justify-center bg-black/60">
+                <img
+                  src={lightboxCert.imageSrc}
+                  alt={lightboxCert.title}
+                  className="max-h-[60vh] w-auto object-contain rounded-xl shadow-2xl border border-white/10"
+                />
+              </div>
+
+              {/* Modal Details Footer */}
+              <div className="p-6 bg-obsidian-950 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#E08A56]">
+                    {getTagFromCategory(lightboxCert.category)}
+                  </span>
+                  <p className="text-sm text-typography-muted max-w-2xl">
+                    {lightboxCert.description}
+                  </p>
+                  {lightboxCert.credentialId && (
+                    <p className="font-mono text-xs text-emerald-400">
+                      ID: {lightboxCert.credentialId}
+                    </p>
+                  )}
+                </div>
+
+                <button
+                  onClick={() => window.open(lightboxCert.imageSrc, '_blank')}
+                  className="px-5 py-2.5 rounded-full bg-emerald-400 text-black font-mono text-xs font-semibold hover:bg-emerald-300 transition-colors flex items-center justify-center space-x-2 shrink-0 cursor-pointer shadow-lg"
+                >
+                  <span>OPEN ORIGINAL FILE</span>
+                  <ExternalLink className="w-4 h-4" />
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </section>
   );
 };
