@@ -46,7 +46,7 @@ export const CertificatesSection: React.FC = () => {
     }
   };
 
-  // 1. Interactive Starfield Canvas with Dynamic Scroll Zoom
+  // 1. Cosmic Starfield Canvas with Dynamic Scroll Zoom
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -64,10 +64,10 @@ export const CertificatesSection: React.FC = () => {
     };
     window.addEventListener('resize', handleResize);
 
-    const starCount = 280;
+    const starCount = 300;
     const stars = Array.from({ length: starCount }, () => {
-      const origX = (Math.random() - 0.5) * width * 1.6;
-      const origY = (Math.random() - 0.5) * height * 1.6;
+      const origX = (Math.random() - 0.5) * width * 1.8;
+      const origY = (Math.random() - 0.5) * height * 1.8;
       const dist = Math.sqrt(origX * origX + origY * origY);
       return {
         x: origX,
@@ -100,7 +100,7 @@ export const CertificatesSection: React.FC = () => {
       const centerX = width / 2;
       const centerY = height / 2;
 
-      // Cosmic gradient
+      // Cosmic background gradient
       const grad = ctx.createRadialGradient(width * 0.4, height * 0.5, 50, width * 0.5, height * 0.5, width * 0.85);
       if (isLightMode) {
         grad.addColorStop(0, 'rgba(240, 253, 250, 0.95)');
@@ -114,7 +114,7 @@ export const CertificatesSection: React.FC = () => {
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, width, height);
 
-      // Scroll-driven 3D Starfield Zoom: scrolling down zooms in, scrolling up zooms out
+      // Scroll-driven 3D starfield zoom: scrolling down zooms in, scrolling up zooms out
       const scrollZoom = currentScroll * 0.85;
       const cycle = 850;
 
@@ -158,7 +158,7 @@ export const CertificatesSection: React.FC = () => {
     };
   }, [isLightMode]);
 
-  // 2. Continuous Fixed-Axis Revolution & Direct Sequential Placement
+  // 2. Center-Left Curved Entry, Revolution, and Direct Placement
   useEffect(() => {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (prefersReducedMotion) {
@@ -178,19 +178,19 @@ export const CertificatesSection: React.FC = () => {
     const isMobile = window.innerWidth < 768;
     const isTablet = window.innerWidth >= 768 && window.innerWidth < 1024;
 
-    // Refined, slightly more compact card size
+    // Compact, refined certificate card size
     const cols = isMobile ? 1 : isTablet ? 2 : 3;
-    const cardWidth = isMobile ? 290 : isTablet ? 310 : 335; // Compact, perfectly proportioned size
-    const rowHeight = 250;
-    const gapX = isMobile ? 0 : 26;
-    const gapY = 20;
+    const cardWidth = isMobile ? 275 : isTablet ? 290 : 310; // Perfectly proportioned compact card
+    const cardHeight = 230; // Clean height
+    const gapX = isMobile ? 0 : 28;
+    const gapY = 22;
 
-    // Orbit coordinates on fixed axis
-    const orbitRadiusX = isMobile ? 290 : isTablet ? 420 : 510;
-    const orbitRadiusZ = isMobile ? 250 : isTablet ? 340 : 420;
-    const orbitCenterY = 20;
+    // Fixed 3D Orbit Axis coordinates
+    const orbitRadiusX = isMobile ? 260 : isTablet ? 380 : 470;
+    const orbitRadiusZ = isMobile ? 230 : isTablet ? 320 : 390;
+    const orbitCenterY = 15;
 
-    // Final gallery grid target positions (matching exact cardWidth & spacing)
+    // Exact grid target positions with perfect symmetric spacing (3x3 on desktop)
     const totalGridWidth = cols * cardWidth + (cols - 1) * gapX;
     const gridStartX = -totalGridWidth / 2 + cardWidth / 2;
 
@@ -199,7 +199,7 @@ export const CertificatesSection: React.FC = () => {
       const r = Math.floor(i / cols);
       return {
         x: gridStartX + c * (cardWidth + gapX),
-        y: (r - (Math.ceil(N / cols) - 1) / 2) * (rowHeight + gapY) + 25
+        y: (r - (Math.ceil(N / cols) - 1) / 2) * (cardHeight + gapY) + 20
       };
     });
 
@@ -209,14 +209,14 @@ export const CertificatesSection: React.FC = () => {
         const rad = (angleDeg * Math.PI) / 180;
         return {
           x: Math.sin(rad) * orbitRadiusX,
-          z: Math.cos(rad) * orbitRadiusZ - 100,
+          z: Math.cos(rad) * orbitRadiusZ - 80,
           rotateY: angleDeg,
           rotateZ: 0,
           rotateX: 0
         };
       };
 
-      // Initial card setup: starts offscreen left in the exact same compact width (335px)
+      // Initial card setup: starts offscreen from CENTER-LEFT (y: 0, x: far left)
       cardEls.forEach((card) => {
         gsap.set(card, {
           position: 'absolute',
@@ -225,14 +225,14 @@ export const CertificatesSection: React.FC = () => {
           xPercent: -50,
           yPercent: -50,
           width: cardWidth,
-          x: -window.innerWidth - 300,
-          y: -60,
-          z: -500,
-          scale: 1.0, // Exact 1.0 scale throughout: no jump in size!
+          x: -window.innerWidth - 250, // Starts offscreen Center-Left
+          y: 0,                        // Direct Center alignment on Y-axis
+          z: -450,
+          scale: 1.0,                  // Exact 1.0 size maintained throughout
           opacity: 0,
-          filter: 'blur(6px)',
-          rotateX: 8,
-          rotateY: -40,
+          filter: 'blur(5px)',
+          rotateX: 0,
+          rotateY: -35,                // Banked tangent along curved trajectory
           rotateZ: 0,
           transformPerspective: 2200,
           transformStyle: 'preserve-3d',
@@ -246,12 +246,14 @@ export const CertificatesSection: React.FC = () => {
         scrollTrigger: {
           trigger: section,
           start: 'top top',
-          end: '+=4200',
+          end: '+=4400',
           pin: pinWrapper,
           scrub: 1.2,
           anticipatePin: 1,
           onLeave: () => {
+            // Permanently lock completed state so scroll smoothly resumes to Creative Studio & next sections
             setAnimationCompleted(true);
+            ScrollTrigger.refresh();
           }
         }
       });
@@ -261,32 +263,33 @@ export const CertificatesSection: React.FC = () => {
       const totalRevolutionsAngle = 540;
 
       /* =========================================================================
-         STAGE 1 & 2: 1ST CARD ARRIVES IN CURVED PATH FROM LEFT AND BEGINS REVOLUTION.
-         CARD 2 ARRIVES & JOINS ONGOING REVOLUTION, THEN 3, 4, ETC.
+         STAGE 1 & 2: CERTIFICATES COME FROM THE CENTER-LEFT FORMING A NATURAL
+         CURVED PATH INTO THE REVOLUTION ORBIT.
+         AS EACH CARD REVOLVES, THE NEXT CARD JOINS IN THE ORBIT.
          ========================================================================= */
       cardEls.forEach((card, i) => {
         const arrivalStartTime = 0.35 + i * stagger;
         const entryEndState = getOrbitState(0);
 
-        // Curve from left side
+        // 1. Curved trajectory from Center-Left into Orbit
         tl.to(
           card,
           {
-            x: -window.innerWidth * 0.25,
-            y: 60,
-            z: -200,
-            scale: 1.0, // 100% actual size
+            x: -window.innerWidth * 0.22,
+            y: 50, // Dips slightly in natural aerodynamic curve
+            z: -180,
+            scale: 1.0,
             opacity: 1,
             filter: 'blur(0px)',
-            rotateX: 3,
-            rotateY: -18,
+            rotateX: 2,
+            rotateY: -15,
             duration: entryDuration * 0.5,
             ease: 'power1.out'
           },
           arrivalStartTime
         );
 
-        // Enters the orbit
+        // 2. Smoothly aligns into the fixed revolution orbit
         tl.to(
           card,
           {
@@ -303,7 +306,7 @@ export const CertificatesSection: React.FC = () => {
           arrivalStartTime + entryDuration * 0.5
         );
 
-        // Continuous revolution on fixed axis while newer cards arrive
+        // 3. Continuous revolution on fixed axis while subsequent cards join
         const revolutionStartTime = arrivalStartTime + entryDuration;
         const revolutionEndTime = 0.35 + N * stagger + entryDuration + 2.2;
         const revolutionDuration = revolutionEndTime - revolutionStartTime;
@@ -321,7 +324,7 @@ export const CertificatesSection: React.FC = () => {
                 x: st.x,
                 y: orbitCenterY,
                 z: st.z,
-                scale: 1.0, // Exact same size!
+                scale: 1.0,
                 rotateY: st.rotateY,
                 rotateX: st.rotateX,
                 rotateZ: st.rotateZ
@@ -335,23 +338,23 @@ export const CertificatesSection: React.FC = () => {
       const allRevolvingEndTime = 0.35 + N * stagger + entryDuration + 2.2;
 
       /* =========================================================================
-         STAGE 3: DIRECT SEQUENTIAL PLACEMENT
-         Directly places the certificates one-by-one into their assigned grid positions
-         in the exact same compact size (1.0).
+         STAGE 3: DIRECT SEQUENTIAL PLACEMENT WITH PERFECT SPACING
+         Once all certificates have joined the revolution, they glide one by one
+         directly into their actual positions in the grid.
          ========================================================================= */
       let placeTime = allRevolvingEndTime + 0.2;
 
       cardEls.forEach((card, i) => {
         const target = targetPositions[i];
 
-        // Directly glides from orbit to its exact gallery position in the exact same size
+        // Directly glides from orbit to its exact gallery position in the exact same compact size
         tl.to(
           card,
           {
             x: target.x,
             y: target.y,
             z: 0, // Lands flat in position
-            scale: 1.0, // EXACT SAME SIZE, NO SHRINKAGE OR ENLARGEMENT
+            scale: 1.0, // EXACT SAME COMPACT SIZE
             rotateX: 0,
             rotateY: 0,
             rotateZ: 0,
@@ -361,10 +364,11 @@ export const CertificatesSection: React.FC = () => {
           placeTime
         );
 
-        placeTime += 0.85; // One by one placement
+        placeTime += 0.85; // One by one sequential placement
       });
 
-      tl.to({}, { duration: 0.5 }, placeTime + 0.3);
+      // Seamless buffer at the end so scrolling smoothly releases into the Creative Studio
+      tl.to({}, { duration: 0.6 }, placeTime + 0.3);
     }, section);
 
     return () => {
@@ -381,7 +385,7 @@ export const CertificatesSection: React.FC = () => {
         backgroundColor: 'var(--bg-primary, #050505)',
         borderColor: 'var(--bg-card-border, rgba(255, 255, 255, 0.1))',
         minHeight: animationCompleted ? 'auto' : '100vh',
-        paddingBottom: animationCompleted ? '5rem' : 0
+        paddingBottom: animationCompleted ? '6rem' : 0
       }}
     >
       {/* Deep Infinite Space Canvas Background (Zooms dynamically on scroll) */}
@@ -391,7 +395,7 @@ export const CertificatesSection: React.FC = () => {
 
       {/* 
         IF ANIMATION ALREADY COMPLETED:
-        Render settled responsive gallery directly in the exact same compact size (cardWidth: 335px)
+        Render settled responsive gallery directly in the exact same compact size with perfect spacing.
       */}
       {animationCompleted ? (
         <div ref={galleryRef} className="max-w-6xl mx-auto px-6 sm:px-8 w-full pt-16 sm:pt-20 pb-12 z-20 relative">
@@ -446,8 +450,8 @@ export const CertificatesSection: React.FC = () => {
             </div>
           </div>
 
-          {/* Final Settled Gallery Grid (Exactly matching compact cards) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 w-full">
+          {/* Final Settled Gallery Grid (Exactly matching compact cards with perfect spacing) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7 w-full">
             {filteredCerts.map((cert) => (
               <CertificateCard
                 key={cert.id}
@@ -465,7 +469,8 @@ export const CertificatesSection: React.FC = () => {
         /* 
           PINNED SCROLL ARENA:
           - Pinned during animation
-          - Cards revolve and directly place one by one in exact matching compact size
+          - Cards come from center-left, revolve continuously on 3D axis, then place one-by-one
+          - Unpins smoothly to continue with Creative Corner / Studio
         */
         <div 
           ref={pinWrapperRef}

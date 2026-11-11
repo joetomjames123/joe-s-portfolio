@@ -27,11 +27,11 @@ export const CertificateCard: React.FC<CertificateCardProps> = ({
         borderColor: 'var(--bg-card-border, rgba(255, 255, 255, 0.1))',
         ...style
       }}
-      className={`rounded-[18px] overflow-hidden border transition-all duration-300 shadow-xl group cursor-pointer flex flex-col justify-between select-none ${className}`}
+      className={`rounded-[16px] overflow-hidden border transition-all duration-300 shadow-xl group cursor-pointer flex flex-col justify-between select-none ${className}`}
     >
       {/* 16/10 aspect ratio certificate image showcase */}
       <div 
-        className="relative aspect-[16/10] p-2.5 sm:p-3 flex items-center justify-center overflow-hidden border-b transition-colors bg-white"
+        className="relative aspect-[16/10] p-2 sm:p-2.5 flex items-center justify-center overflow-hidden border-b transition-colors bg-white"
         style={{ borderColor: 'var(--bg-card-border, rgba(255, 255, 255, 0.1))' }}
       >
         <img
@@ -48,9 +48,9 @@ export const CertificateCard: React.FC<CertificateCardProps> = ({
         </div>
       </div>
 
-      {/* Card Info Body (Refined compact typography) */}
+      {/* Card Info Body (Sleek compact typography) */}
       <div 
-        className="p-3 sm:p-3.5 flex flex-col justify-between flex-1 space-y-2 transition-colors"
+        className="p-2.5 sm:p-3 flex flex-col justify-between flex-1 space-y-1.5 transition-colors"
         style={{
           backgroundColor: isLightMode ? 'var(--bg-secondary, #F8FAFC)' : 'var(--bg-card, rgba(16, 20, 24, 0.85))'
         }}
@@ -60,7 +60,7 @@ export const CertificateCard: React.FC<CertificateCardProps> = ({
             {getTagFromCategory(cert.category)}
           </span>
           <h4 
-            className="font-serif text-sm sm:text-base font-medium leading-snug group-hover:text-emerald-400 transition-colors line-clamp-1"
+            className="font-serif text-xs sm:text-sm font-medium leading-snug group-hover:text-emerald-400 transition-colors line-clamp-1"
             style={{ color: 'var(--text-primary, #FFFFFF)' }}
           >
             {cert.title}
@@ -74,7 +74,7 @@ export const CertificateCard: React.FC<CertificateCardProps> = ({
         </div>
 
         <div 
-          className="pt-2 border-t flex items-center justify-between transition-colors"
+          className="pt-1.5 border-t flex items-center justify-between transition-colors"
           style={{ borderColor: 'var(--bg-card-border, rgba(255, 255, 255, 0.1))' }}
         >
           <span className="font-mono text-[10px]" style={{ color: 'var(--text-muted, #64748B)' }}>
