@@ -17,7 +17,7 @@ export const CertificatesSection: React.FC = () => {
   const sectionRef = useRef<HTMLElement>(null);
   const pinWrapperRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const cylinderRef = useRef<HTMLDivElement>(null);
+  const arenaRef = useRef<HTMLDivElement>(null);
   const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
   const galleryRef = useRef<HTMLDivElement>(null);
 
@@ -47,7 +47,7 @@ export const CertificatesSection: React.FC = () => {
     }
   };
 
-  // 1. Interactive Space Starfield Canvas (Stationary deep cosmos with drifting stars)
+  // 1. Stationary Infinite Space Cosmic Canvas
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -119,7 +119,7 @@ export const CertificatesSection: React.FC = () => {
     };
   }, [isLightMode]);
 
-  // 2. TRUE 3D CYLINDRICAL CAROUSEL (Carousel Ring with depth along Z, genuine rotateY + rotateZ turntable)
+  // 2. CONTINUOUS REVOLUTION TIMELINE (Curved Entry from Left -> Continuous Orbit Revolution -> Sequential Placement)
   useEffect(() => {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (prefersReducedMotion) {
@@ -131,20 +131,20 @@ export const CertificatesSection: React.FC = () => {
 
     const section = sectionRef.current;
     const pinWrapper = pinWrapperRef.current;
-    const cylinder = cylinderRef.current;
     const cardEls = cardsRef.current.filter(Boolean) as HTMLDivElement[];
 
-    if (!section || !pinWrapper || !cylinder || cardEls.length === 0) return;
+    if (!section || !pinWrapper || cardEls.length === 0) return;
 
     const N = cardEls.length;
     const isMobile = window.innerWidth < 768;
     const isTablet = window.innerWidth >= 768 && window.innerWidth < 1024;
 
-    // 3D Carousel Cylinder Radius (Pushing cards into Z-space)
-    const cylinderRadius = isMobile ? 360 : isTablet ? 520 : 640;
-    const cylinderCenterOffset = isMobile ? 0 : -100; // Shifted gently leftward
+    // Fixed Central Orbit Axis (where certificates continuously revolve)
+    const orbitRadiusX = isMobile ? 320 : isTablet ? 460 : 560; // Horizontal width of 3D orbit
+    const orbitRadiusZ = isMobile ? 280 : isTablet ? 380 : 460; // Depth of 3D orbit
+    const orbitCenterY = 20;
 
-    // Target final grid layout metrics
+    // Final gallery grid target positions (matching 3-column desktop layout)
     const cols = isMobile ? 1 : isTablet ? 2 : 3;
     const colWidth = isMobile ? 320 : isTablet ? 340 : 380;
     const rowHeight = 310;
@@ -164,10 +164,20 @@ export const CertificatesSection: React.FC = () => {
     });
 
     const ctx = gsap.context(() => {
-      // 1. Initial State: Deep in infinity space
-      cardEls.forEach((card, i) => {
-        const randAngle = Math.random() * Math.PI * 2;
-        const randDist = 450 + Math.random() * 550;
+      // Helper function to calculate 3D coordinates on the fixed revolution axis
+      const getOrbitState = (angleDeg: number) => {
+        const rad = (angleDeg * Math.PI) / 180;
+        return {
+          x: Math.sin(rad) * orbitRadiusX,
+          z: Math.cos(rad) * orbitRadiusZ - 120, // Negative Z goes into screen depth, positive comes forward
+          rotateY: angleDeg, // Card faces outwards along the 3D orbit tangent
+          rotateZ: 0,
+          rotateX: 0
+        };
+      };
+
+      // Initial Setup: All cards start outside on the far-left behind the screen
+      cardEls.forEach((card) => {
         gsap.set(card, {
           position: 'absolute',
           top: '50%',
@@ -175,15 +185,15 @@ export const CertificatesSection: React.FC = () => {
           xPercent: -50,
           yPercent: -50,
           width: colWidth,
-          x: Math.cos(randAngle) * randDist,
-          y: Math.sin(randAngle) * randDist,
-          z: -2200 - i * 180, // Extremely deep in 3D infinity space
-          scale: 0.1,
+          x: -window.innerWidth - 300, // Offscreen Left
+          y: -80,
+          z: -600,
+          scale: 0.85,
           opacity: 0,
-          filter: 'blur(16px)',
-          rotateX: (Math.random() - 0.5) * 30,
-          rotateY: (Math.random() - 0.5) * 45,
-          rotateZ: (Math.random() - 0.5) * 40,
+          filter: 'blur(8px)',
+          rotateX: 10,
+          rotateY: -45, // Angled along the curved entry trajectory
+          rotateZ: 0,
           transformPerspective: 2200,
           transformStyle: 'preserve-3d',
           transformOrigin: '50% 50%',
@@ -191,24 +201,12 @@ export const CertificatesSection: React.FC = () => {
         });
       });
 
-      // Position the 3D cylinder
-      gsap.set(cylinder, {
-        transformStyle: 'preserve-3d',
-        transformPerspective: 2200,
-        x: cylinderCenterOffset,
-        y: 20,
-        z: -200,
-        rotateX: 12, // Subtle tilt to enhance true 3D spatial depth
-        rotateY: 0,
-        rotateZ: 0
-      });
-
-      // Master Timeline bound to scroll
+      // Master Timeline driven directly by scrolling
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: section,
           start: 'top top',
-          end: '+=4200',
+          end: '+=4400',
           pin: pinWrapper,
           scrub: 1.2,
           anticipatePin: 1,
@@ -218,73 +216,99 @@ export const CertificatesSection: React.FC = () => {
         }
       });
 
-      /* ==============================================================
-         STAGE 1 & 2: EMERGE FROM INFINITY ONE BY ONE AND FORM A
-         GENUINE 3D CIRCULAR CAROUSEL (translateZ + rotateY facing tangent)
-         ============================================================== */
+      // Duration parameters for revolution
+      const entryDuration = 1.0;
+      const stagger = 0.65; // Time between each new certificate's entry from the left
+      const totalRevolutionsAngle = 540; // Total angular travel during continuous revolution
+
+      /* =========================================================================
+         STAGE 1 & 2: 1ST CARD ARRIVES IN CURVED PATH FROM LEFT AND BEGINS REVOLUTION.
+         WHILE IT REVOLVES IN THE FIXED AXIS, CARD 2 ARRIVES AND JOINS,
+         THEN CARD 3, AND SO ON UNTIL ALL CERTIFICATES ARE REVOLVING TOGETHER!
+         ========================================================================= */
       cardEls.forEach((card, i) => {
-        const angleDeg = (i / N) * 360;
-        const angleRad = (angleDeg * Math.PI) / 180;
+        const arrivalStartTime = 0.4 + i * stagger;
+        const entryEndState = getOrbitState(0);
 
-        // Genuine 3D Ring coordinates in space
-        const ringX = Math.sin(angleRad) * cylinderRadius;
-        const ringZ = Math.cos(angleRad) * cylinderRadius - cylinderRadius; // Front cards at 0, back cards at -2*radius
-        const ringY = Math.sin(angleRad * 2) * 25; // Subtle spatial wave
-
-        const enterTime = 0.5 + i * 0.45;
-
-        // Travel from infinity, curve towards left, and take seat in genuine 3D circular cylinder
+        // 1. Curved trajectory from Left side into the Orbit Entry Point
+        // Point 1: Mid-arc curved sweep
         tl.to(
           card,
           {
-            x: ringX,
-            y: ringY,
-            z: ringZ,
-            scale: 0.82,
+            x: -window.innerWidth * 0.28,
+            y: 70, // Dips down in natural curve
+            z: -250,
+            scale: 0.88,
             opacity: 1,
             filter: 'blur(0px)',
-            rotateX: 0,
-            rotateY: angleDeg, // Card faces directly outwards along the 3D ring!
-            rotateZ: 0,        // Upright, not flat or rotated on its side!
-            duration: 1.3,
-            ease: 'power2.out'
+            rotateX: 4,
+            rotateY: -20,
+            duration: entryDuration * 0.5,
+            ease: 'power1.out'
           },
-          enterTime
+          arrivalStartTime
+        );
+
+        // Point 2: Lands into the revolution axis (0 degrees)
+        tl.to(
+          card,
+          {
+            x: entryEndState.x,
+            y: orbitCenterY,
+            z: entryEndState.z,
+            scale: 0.88,
+            opacity: 1,
+            rotateX: 0,
+            rotateY: 0,
+            duration: entryDuration * 0.5,
+            ease: 'power1.inOut'
+          },
+          arrivalStartTime + entryDuration * 0.5
+        );
+
+        // 3. Continuous Revolution on the Fixed Axis
+        // While newer certificates are still arriving from the left, this card
+        // is ALREADY actively revolving around the orbit alongside all previously joined cards!
+        const revolutionStartTime = arrivalStartTime + entryDuration;
+        const revolutionEndTime = 0.4 + N * stagger + entryDuration + 2.5;
+        const revolutionDuration = revolutionEndTime - revolutionStartTime;
+
+        // Custom object to smoothly interpolate revolution angle
+        const orbitTracker = { angle: 0 };
+        tl.to(
+          orbitTracker,
+          {
+            angle: totalRevolutionsAngle,
+            duration: revolutionDuration,
+            ease: 'none',
+            onUpdate: () => {
+              const st = getOrbitState(orbitTracker.angle);
+              gsap.set(card, {
+                x: st.x,
+                y: orbitCenterY,
+                z: st.z,
+                rotateY: st.rotateY,
+                rotateX: st.rotateX,
+                rotateZ: st.rotateZ
+              });
+            }
+          },
+          revolutionStartTime
         );
       });
 
-      const formationCompleteTime = 0.5 + N * 0.45 + 1.3;
+      const allRevolvingEndTime = 0.4 + N * stagger + entryDuration + 2.5;
 
-      /* ==============================================================
-         STAGE 3 & 4: 3D CYLINDER ROTATION AROUND Y & Z AXES (CAROUSEL SPIN)
-         ============================================================== */
-      // Rotate the 3D cylinder so each card swings to the front in full perspective
-      tl.to(
-        cylinder,
-        {
-          rotateY: 360,
-          rotateZ: 360, // True 3D Z-axis spinning wheel effect combined with spatial rotation
-          duration: 4.2,
-          ease: 'none'
-        },
-        formationCompleteTime
-      );
-
-      const rotationEndTime = formationCompleteTime + 4.2;
-
-      /* ==============================================================
-         STAGE 5: INDIVIDUAL SEQUENTIAL PLACEMENT INTO PREMIUM GALLERY
-         - 1st certificate is selected from the front of the carousel
-         - Approaches viewer (z: 160, rotateY: 0, rotateZ: 0)
-         - Smoothly travels and settles into its assigned gallery grid position
-         - Next certificate follows until all cards are positioned
-         ============================================================== */
-      let placeTime = rotationEndTime + 0.3;
+      /* =========================================================================
+         STAGE 3: AFTER ALL CERTIFICATES ARE IN THE REVOLUTION,
+         THEY ARE SEQUENTIALLY PLACED INTO THE PREMIUM 3-COLUMN GALLERY!
+         ========================================================================= */
+      let placeTime = allRevolvingEndTime + 0.3;
 
       cardEls.forEach((card, i) => {
         const target = targetPositions[i];
 
-        // 1. Pull card from cylinder to center foreground, facing front
+        // 1. Certificate moves from revolution orbit to center foreground, facing front
         tl.to(
           card,
           {
@@ -295,27 +319,27 @@ export const CertificatesSection: React.FC = () => {
             rotateX: 0,
             rotateY: 0,
             rotateZ: 0,
-            duration: 0.7,
+            duration: 0.65,
             ease: 'power2.inOut'
           },
           placeTime
         );
 
-        // 2. Fly smoothly to its exact gallery grid position
+        // 2. Fly smoothly to its exact assigned gallery grid slot
         tl.to(
           card,
           {
-            x: target.x - cylinderCenterOffset, // Offset to compensate for cylinder position
-            y: target.y - 20,
-            z: 200, // Zero depth relative to screen
+            x: target.x,
+            y: target.y,
+            z: 0, // Lands flat on screen
             scale: 1.0,
             duration: 0.85,
             ease: 'power3.out'
           },
-          placeTime + 0.65
+          placeTime + 0.6
         );
 
-        placeTime += 0.95;
+        placeTime += 0.92; // Next card begins its placement only after this one settles
       });
 
       tl.to({}, { duration: 0.5 }, placeTime + 0.4);
@@ -344,8 +368,8 @@ export const CertificatesSection: React.FC = () => {
       </div>
 
       {/* 
-        IF ANIMATION ALREADY COMPLETED (or on prefers-reduced-motion):
-        Render final settled premium certificate gallery directly
+        IF ANIMATION ALREADY COMPLETED:
+        Render settled responsive gallery directly.
       */}
       {animationCompleted ? (
         <div ref={galleryRef} className="max-w-7xl mx-auto px-6 sm:px-8 w-full pt-16 sm:pt-20 pb-12 z-20 relative">
@@ -418,9 +442,9 @@ export const CertificatesSection: React.FC = () => {
       ) : (
         /* 
           PINNED SCROLL ARENA:
-          - Pin wrapper locks to viewport while scrolling down.
-          - Heading remains visible throughout without occlusion.
-          - Genuine 3D Carousel Cylinder in Z-depth.
+          - Heading remains visible throughout without disappearing.
+          - Cards sweep in from left, actively revolve on the 3D axis while subsequent cards join,
+            and then sequentially settle into position.
         */
         <div 
           ref={pinWrapperRef}
@@ -476,51 +500,42 @@ export const CertificatesSection: React.FC = () => {
             </div>
           </div>
 
-          {/* Genuine 3D Spatial Arena */}
+          {/* 3D Arena with Perspective */}
           <div 
+            ref={arenaRef}
             className="relative flex-1 w-full flex items-center justify-center overflow-visible"
             style={{
               perspective: '2200px',
-              perspectiveOrigin: '50% 45%',
+              perspectiveOrigin: '50% 50%',
               transformStyle: 'preserve-3d'
             }}
           >
-            {/* 3D Carousel Cylinder (Holds cards in true Z-depth) */}
-            <div
-              ref={cylinderRef}
-              className="absolute w-full h-full flex items-center justify-center"
-              style={{
-                transformStyle: 'preserve-3d',
-                transformOrigin: '50% 50%'
-              }}
-            >
-              {filteredCerts.map((cert, index) => (
-                <div
-                  key={cert.id}
-                  ref={(el) => (cardsRef.current[index] = el)}
-                  style={{
-                    transformStyle: 'preserve-3d',
-                    pointerEvents: 'auto'
-                  }}
-                >
-                  <CertificateCard
-                    cert={cert}
-                    isLightMode={isLightMode}
-                    getTagFromCategory={getTagFromCategory}
-                    onSelect={() => setLightboxCert(cert)}
-                  />
-                </div>
-              ))}
-            </div>
+            {filteredCerts.map((cert, index) => (
+              <div
+                key={cert.id}
+                ref={(el) => (cardsRef.current[index] = el)}
+                style={{
+                  transformStyle: 'preserve-3d',
+                  pointerEvents: 'auto'
+                }}
+              >
+                <CertificateCard
+                  cert={cert}
+                  isLightMode={isLightMode}
+                  getTagFromCategory={getTagFromCategory}
+                  onSelect={() => setLightboxCert(cert)}
+                />
+              </div>
+            ))}
           </div>
 
           {/* Bottom subtle status bar */}
           <div className="w-full flex items-center justify-between text-[11px] font-mono text-typography-muted opacity-60 z-30 pt-2">
             <span className="flex items-center space-x-2">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>SCROLL TO ADVANCE 3D Z-AXIS CAROUSEL & PLACEMENT</span>
+              <span>SCROLL TO ADVANCE CURVED ENTRY, ORBIT REVOLUTION & PLACEMENT</span>
             </span>
-            <span>{filteredCerts.length} CREDENTIALS IN 3D SPACE</span>
+            <span>{filteredCerts.length} CREDENTIALS IN 3D REVOLUTION</span>
           </div>
         </div>
       )}
