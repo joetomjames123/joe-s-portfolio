@@ -17,7 +17,6 @@ export const CertificatesSection: React.FC = () => {
   const sectionRef = useRef<HTMLElement>(null);
   const pinWrapperRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const arenaRef = useRef<HTMLDivElement>(null);
   const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
   const galleryRef = useRef<HTMLDivElement>(null);
 
@@ -47,7 +46,7 @@ export const CertificatesSection: React.FC = () => {
     }
   };
 
-  // 1. Stationary Infinite Space Cosmic Canvas
+  // 1. Interactive Starfield Canvas with Dynamic Scroll Zoom
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -65,19 +64,43 @@ export const CertificatesSection: React.FC = () => {
     };
     window.addEventListener('resize', handleResize);
 
-    const starCount = 200;
-    const stars = Array.from({ length: starCount }, () => ({
-      x: Math.random() * width,
-      y: Math.random() * height,
-      size: Math.random() * 1.6 + 0.4,
-      color: Math.random() > 0.6 ? '#10B981' : Math.random() > 0.3 ? '#A7F3D0' : '#E2E8F0',
-      alpha: Math.random() * 0.7 + 0.3,
-      speed: Math.random() * 0.25 + 0.08
-    }));
+    const starCount = 280;
+    const stars = Array.from({ length: starCount }, () => {
+      const origX = (Math.random() - 0.5) * width * 1.6;
+      const origY = (Math.random() - 0.5) * height * 1.6;
+      const dist = Math.sqrt(origX * origX + origY * origY);
+      return {
+        x: origX,
+        y: origY,
+        z: Math.random() * 800 + 100,
+        radius: Math.random() * 1.5 + 0.4,
+        color: Math.random() > 0.6 ? '#10B981' : Math.random() > 0.3 ? '#A7F3D0' : '#E2E8F0',
+        alpha: Math.random() * 0.7 + 0.3,
+        orbitRadius: dist,
+        orbitAngle: Math.atan2(origY, origX),
+        orbitSpeed: (Math.random() * 0.0008 + 0.0004) * (Math.random() > 0.5 ? 1 : -1)
+      };
+    });
 
+    let currentScroll = window.scrollY;
+    let targetScroll = window.scrollY;
+
+    const handleScroll = () => {
+      targetScroll = window.scrollY;
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    let time = 0;
     const render = () => {
+      time += 0.015;
+      currentScroll += (targetScroll - currentScroll) * 0.08;
+
       ctx.clearRect(0, 0, width, height);
 
+      const centerX = width / 2;
+      const centerY = height / 2;
+
+      // Cosmic gradient
       const grad = ctx.createRadialGradient(width * 0.4, height * 0.5, 50, width * 0.5, height * 0.5, width * 0.85);
       if (isLightMode) {
         grad.addColorStop(0, 'rgba(240, 253, 250, 0.95)');
@@ -91,16 +114,31 @@ export const CertificatesSection: React.FC = () => {
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, width, height);
 
+      // Scroll-driven 3D Starfield Zoom: scrolling down zooms in, scrolling up zooms out
+      const scrollZoom = currentScroll * 0.85;
+      const cycle = 850;
+
       for (const s of stars) {
-        s.y -= s.speed;
-        if (s.y < 0) {
-          s.y = height;
-          s.x = Math.random() * width;
-        }
+        s.orbitAngle += s.orbitSpeed;
+        const curX = Math.cos(s.orbitAngle) * s.orbitRadius;
+        const curY = Math.sin(s.orbitAngle) * s.orbitRadius;
+
+        // Dynamic Z depth with scroll zoom
+        let adjustedZ = ((s.z - scrollZoom) % cycle + cycle) % cycle + 40;
+
+        // 3D Perspective Projection
+        const fov = 400;
+        const scale = fov / (fov + adjustedZ);
+        const projX = centerX + curX * scale;
+        const projY = centerY + curY * scale;
+
+        if (projX < -50 || projX > width + 50 || projY < -50 || projY > height + 50) continue;
+
         ctx.beginPath();
-        ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+        const starSize = Math.max(0.6, s.radius * scale * 2.2);
+        ctx.arc(projX, projY, starSize, 0, Math.PI * 2);
         ctx.fillStyle = s.color;
-        ctx.globalAlpha = isLightMode ? s.alpha * 0.6 : s.alpha;
+        ctx.globalAlpha = Math.min(1, Math.max(0.2, (1 - adjustedZ / 900) * s.alpha));
         ctx.shadowBlur = 4;
         ctx.shadowColor = s.color;
         ctx.fill();
@@ -116,10 +154,11 @@ export const CertificatesSection: React.FC = () => {
     return () => {
       cancelAnimationFrame(animId);
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('scroll', handleScroll);
     };
   }, [isLightMode]);
 
-  // 2. CONTINUOUS REVOLUTION TIMELINE (Curved Entry from Left -> Continuous Orbit Revolution -> Sequential Placement)
+  // 2. Continuous Fixed-Axis Revolution & Direct Sequential Placement
   useEffect(() => {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (prefersReducedMotion) {
@@ -139,44 +178,45 @@ export const CertificatesSection: React.FC = () => {
     const isMobile = window.innerWidth < 768;
     const isTablet = window.innerWidth >= 768 && window.innerWidth < 1024;
 
-    // Fixed Central Orbit Axis (where certificates continuously revolve)
-    const orbitRadiusX = isMobile ? 320 : isTablet ? 460 : 560; // Horizontal width of 3D orbit
-    const orbitRadiusZ = isMobile ? 280 : isTablet ? 380 : 460; // Depth of 3D orbit
+    // Refined, slightly more compact card size
+    const cols = isMobile ? 1 : isTablet ? 2 : 3;
+    const cardWidth = isMobile ? 290 : isTablet ? 310 : 335; // Compact, perfectly proportioned size
+    const rowHeight = 250;
+    const gapX = isMobile ? 0 : 26;
+    const gapY = 20;
+
+    // Orbit coordinates on fixed axis
+    const orbitRadiusX = isMobile ? 290 : isTablet ? 420 : 510;
+    const orbitRadiusZ = isMobile ? 250 : isTablet ? 340 : 420;
     const orbitCenterY = 20;
 
-    // Final gallery grid target positions (matching 3-column desktop layout)
-    const cols = isMobile ? 1 : isTablet ? 2 : 3;
-    const colWidth = isMobile ? 320 : isTablet ? 340 : 380;
-    const rowHeight = 310;
-    const gapX = isMobile ? 0 : 30;
-    const gapY = 24;
-
-    const totalGridWidth = cols * colWidth + (cols - 1) * gapX;
-    const gridStartX = -totalGridWidth / 2 + colWidth / 2;
+    // Final gallery grid target positions (matching exact cardWidth & spacing)
+    const totalGridWidth = cols * cardWidth + (cols - 1) * gapX;
+    const gridStartX = -totalGridWidth / 2 + cardWidth / 2;
 
     const targetPositions = cardEls.map((_, i) => {
       const c = i % cols;
       const r = Math.floor(i / cols);
       return {
-        x: gridStartX + c * (colWidth + gapX),
-        y: (r - (Math.ceil(N / cols) - 1) / 2) * (rowHeight + gapY) + 30
+        x: gridStartX + c * (cardWidth + gapX),
+        y: (r - (Math.ceil(N / cols) - 1) / 2) * (rowHeight + gapY) + 25
       };
     });
 
     const ctx = gsap.context(() => {
-      // Helper function to calculate 3D coordinates on the fixed revolution axis
+      // Helper function for fixed orbit coordinates
       const getOrbitState = (angleDeg: number) => {
         const rad = (angleDeg * Math.PI) / 180;
         return {
           x: Math.sin(rad) * orbitRadiusX,
-          z: Math.cos(rad) * orbitRadiusZ - 120, // Negative Z goes into screen depth, positive comes forward
-          rotateY: angleDeg, // Card faces outwards along the 3D orbit tangent
+          z: Math.cos(rad) * orbitRadiusZ - 100,
+          rotateY: angleDeg,
           rotateZ: 0,
           rotateX: 0
         };
       };
 
-      // Initial Setup: All cards start outside on the far-left behind the screen
+      // Initial card setup: starts offscreen left in the exact same compact width (335px)
       cardEls.forEach((card) => {
         gsap.set(card, {
           position: 'absolute',
@@ -184,15 +224,15 @@ export const CertificatesSection: React.FC = () => {
           left: '50%',
           xPercent: -50,
           yPercent: -50,
-          width: colWidth,
-          x: -window.innerWidth - 300, // Offscreen Left
-          y: -80,
-          z: -600,
-          scale: 0.85,
+          width: cardWidth,
+          x: -window.innerWidth - 300,
+          y: -60,
+          z: -500,
+          scale: 1.0, // Exact 1.0 scale throughout: no jump in size!
           opacity: 0,
-          filter: 'blur(8px)',
-          rotateX: 10,
-          rotateY: -45, // Angled along the curved entry trajectory
+          filter: 'blur(6px)',
+          rotateX: 8,
+          rotateY: -40,
           rotateZ: 0,
           transformPerspective: 2200,
           transformStyle: 'preserve-3d',
@@ -206,7 +246,7 @@ export const CertificatesSection: React.FC = () => {
         scrollTrigger: {
           trigger: section,
           start: 'top top',
-          end: '+=4400',
+          end: '+=4200',
           pin: pinWrapper,
           scrub: 1.2,
           anticipatePin: 1,
@@ -216,47 +256,44 @@ export const CertificatesSection: React.FC = () => {
         }
       });
 
-      // Duration parameters for revolution
-      const entryDuration = 1.0;
-      const stagger = 0.65; // Time between each new certificate's entry from the left
-      const totalRevolutionsAngle = 540; // Total angular travel during continuous revolution
+      const entryDuration = 0.95;
+      const stagger = 0.65;
+      const totalRevolutionsAngle = 540;
 
       /* =========================================================================
          STAGE 1 & 2: 1ST CARD ARRIVES IN CURVED PATH FROM LEFT AND BEGINS REVOLUTION.
-         WHILE IT REVOLVES IN THE FIXED AXIS, CARD 2 ARRIVES AND JOINS,
-         THEN CARD 3, AND SO ON UNTIL ALL CERTIFICATES ARE REVOLVING TOGETHER!
+         CARD 2 ARRIVES & JOINS ONGOING REVOLUTION, THEN 3, 4, ETC.
          ========================================================================= */
       cardEls.forEach((card, i) => {
-        const arrivalStartTime = 0.4 + i * stagger;
+        const arrivalStartTime = 0.35 + i * stagger;
         const entryEndState = getOrbitState(0);
 
-        // 1. Curved trajectory from Left side into the Orbit Entry Point
-        // Point 1: Mid-arc curved sweep
+        // Curve from left side
         tl.to(
           card,
           {
-            x: -window.innerWidth * 0.28,
-            y: 70, // Dips down in natural curve
-            z: -250,
-            scale: 0.88,
+            x: -window.innerWidth * 0.25,
+            y: 60,
+            z: -200,
+            scale: 1.0, // 100% actual size
             opacity: 1,
             filter: 'blur(0px)',
-            rotateX: 4,
-            rotateY: -20,
+            rotateX: 3,
+            rotateY: -18,
             duration: entryDuration * 0.5,
             ease: 'power1.out'
           },
           arrivalStartTime
         );
 
-        // Point 2: Lands into the revolution axis (0 degrees)
+        // Enters the orbit
         tl.to(
           card,
           {
             x: entryEndState.x,
             y: orbitCenterY,
             z: entryEndState.z,
-            scale: 0.88,
+            scale: 1.0,
             opacity: 1,
             rotateX: 0,
             rotateY: 0,
@@ -266,14 +303,11 @@ export const CertificatesSection: React.FC = () => {
           arrivalStartTime + entryDuration * 0.5
         );
 
-        // 3. Continuous Revolution on the Fixed Axis
-        // While newer certificates are still arriving from the left, this card
-        // is ALREADY actively revolving around the orbit alongside all previously joined cards!
+        // Continuous revolution on fixed axis while newer cards arrive
         const revolutionStartTime = arrivalStartTime + entryDuration;
-        const revolutionEndTime = 0.4 + N * stagger + entryDuration + 2.5;
+        const revolutionEndTime = 0.35 + N * stagger + entryDuration + 2.2;
         const revolutionDuration = revolutionEndTime - revolutionStartTime;
 
-        // Custom object to smoothly interpolate revolution angle
         const orbitTracker = { angle: 0 };
         tl.to(
           orbitTracker,
@@ -287,6 +321,7 @@ export const CertificatesSection: React.FC = () => {
                 x: st.x,
                 y: orbitCenterY,
                 z: st.z,
+                scale: 1.0, // Exact same size!
                 rotateY: st.rotateY,
                 rotateX: st.rotateX,
                 rotateZ: st.rotateZ
@@ -297,52 +332,39 @@ export const CertificatesSection: React.FC = () => {
         );
       });
 
-      const allRevolvingEndTime = 0.4 + N * stagger + entryDuration + 2.5;
+      const allRevolvingEndTime = 0.35 + N * stagger + entryDuration + 2.2;
 
       /* =========================================================================
-         STAGE 3: AFTER ALL CERTIFICATES ARE IN THE REVOLUTION,
-         THEY ARE SEQUENTIALLY PLACED INTO THE PREMIUM 3-COLUMN GALLERY!
+         STAGE 3: DIRECT SEQUENTIAL PLACEMENT
+         Directly places the certificates one-by-one into their assigned grid positions
+         in the exact same compact size (1.0).
          ========================================================================= */
-      let placeTime = allRevolvingEndTime + 0.3;
+      let placeTime = allRevolvingEndTime + 0.2;
 
       cardEls.forEach((card, i) => {
         const target = targetPositions[i];
 
-        // 1. Certificate moves from revolution orbit to center foreground, facing front
-        tl.to(
-          card,
-          {
-            x: 0,
-            y: 0,
-            z: 220,
-            scale: 0.95,
-            rotateX: 0,
-            rotateY: 0,
-            rotateZ: 0,
-            duration: 0.65,
-            ease: 'power2.inOut'
-          },
-          placeTime
-        );
-
-        // 2. Fly smoothly to its exact assigned gallery grid slot
+        // Directly glides from orbit to its exact gallery position in the exact same size
         tl.to(
           card,
           {
             x: target.x,
             y: target.y,
-            z: 0, // Lands flat on screen
-            scale: 1.0,
+            z: 0, // Lands flat in position
+            scale: 1.0, // EXACT SAME SIZE, NO SHRINKAGE OR ENLARGEMENT
+            rotateX: 0,
+            rotateY: 0,
+            rotateZ: 0,
             duration: 0.85,
-            ease: 'power3.out'
+            ease: 'power2.out'
           },
-          placeTime + 0.6
+          placeTime
         );
 
-        placeTime += 0.92; // Next card begins its placement only after this one settles
+        placeTime += 0.85; // One by one placement
       });
 
-      tl.to({}, { duration: 0.5 }, placeTime + 0.4);
+      tl.to({}, { duration: 0.5 }, placeTime + 0.3);
     }, section);
 
     return () => {
@@ -359,100 +381,24 @@ export const CertificatesSection: React.FC = () => {
         backgroundColor: 'var(--bg-primary, #050505)',
         borderColor: 'var(--bg-card-border, rgba(255, 255, 255, 0.1))',
         minHeight: animationCompleted ? 'auto' : '100vh',
-        paddingBottom: animationCompleted ? '6rem' : 0
+        paddingBottom: animationCompleted ? '5rem' : 0
       }}
     >
-      {/* Deep Infinite Space Canvas Background */}
+      {/* Deep Infinite Space Canvas Background (Zooms dynamically on scroll) */}
       <div className="absolute inset-0 w-full h-full pointer-events-none -z-10 overflow-hidden">
         <canvas ref={canvasRef} className="w-full h-full block" />
       </div>
 
       {/* 
         IF ANIMATION ALREADY COMPLETED:
-        Render settled responsive gallery directly.
+        Render settled responsive gallery directly in the exact same compact size (cardWidth: 335px)
       */}
       {animationCompleted ? (
-        <div ref={galleryRef} className="max-w-7xl mx-auto px-6 sm:px-8 w-full pt-16 sm:pt-20 pb-12 z-20 relative">
+        <div ref={galleryRef} className="max-w-6xl mx-auto px-6 sm:px-8 w-full pt-16 sm:pt-20 pb-12 z-20 relative">
           
           {/* Header Section (Always Visible) */}
           <div 
-            className="flex flex-col md:flex-row md:items-end justify-between mb-10 pb-4 border-b transition-colors w-full"
-            style={{ borderColor: 'var(--bg-card-border, rgba(255, 255, 255, 0.1))' }}
-          >
-            <div>
-              <div className="flex items-center space-x-3 mb-2">
-                <span className="font-mono text-xs font-bold" style={{ color: 'var(--accent-color, #10B981)' }}>05</span>
-                <span className="w-8 h-[1px]" style={{ backgroundColor: 'var(--bg-card-border, rgba(255, 255, 255, 0.1))' }} />
-                <span className="font-mono text-xs uppercase tracking-widest" style={{ color: 'var(--text-muted, #94A3B8)' }}>
-                  CERTIFICATIONS
-                </span>
-              </div>
-              <h2 
-                className="font-sans text-3xl sm:text-5xl font-semibold tracking-tight transition-colors"
-                style={{ color: 'var(--text-primary, #FFFFFF)' }}
-              >
-                Certificates & Licenses
-              </h2>
-            </div>
-
-            {/* Category Filter Pills */}
-            <div className="flex flex-wrap gap-2 mt-4 md:mt-0">
-              {categories.map((cat) => {
-                const isSelected = activeCategory === cat.id;
-                return (
-                  <button
-                    key={cat.id}
-                    onClick={() => setActiveCategory(cat.id)}
-                    className="px-3.5 py-1.5 rounded-full text-xs font-mono transition-all duration-200 border cursor-pointer"
-                    style={{
-                      backgroundColor: isSelected 
-                        ? 'var(--text-primary, #FFFFFF)' 
-                        : (isLightMode ? '#FFFFFF' : 'rgba(255, 255, 255, 0.05)'),
-                      color: isSelected 
-                        ? (isLightMode ? '#FFFFFF' : '#000000') 
-                        : 'var(--text-secondary, #94A3B8)',
-                      borderColor: isSelected 
-                        ? 'var(--text-primary, #FFFFFF)' 
-                        : 'var(--bg-card-border, rgba(255, 255, 255, 0.1))',
-                      fontWeight: isSelected ? 600 : 400
-                    }}
-                  >
-                    {cat.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Final Settled Premium Certificate Gallery */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 w-full">
-            {filteredCerts.map((cert) => (
-              <CertificateCard
-                key={cert.id}
-                cert={cert}
-                isLightMode={isLightMode}
-                getTagFromCategory={getTagFromCategory}
-                onSelect={() => setLightboxCert(cert)}
-                className="hover:scale-[1.025] hover:-translate-y-1.5 transition-transform duration-300"
-              />
-            ))}
-          </div>
-
-        </div>
-      ) : (
-        /* 
-          PINNED SCROLL ARENA:
-          - Heading remains visible throughout without disappearing.
-          - Cards sweep in from left, actively revolve on the 3D axis while subsequent cards join,
-            and then sequentially settle into position.
-        */
-        <div 
-          ref={pinWrapperRef}
-          className="h-screen w-full flex flex-col justify-between overflow-hidden pt-10 pb-6 max-w-7xl mx-auto px-6 sm:px-8 relative z-20"
-        >
-          {/* Header Section (STATIONARY & ALWAYS VISIBLE) */}
-          <div 
-            className="flex flex-col md:flex-row md:items-end justify-between mb-4 pb-3 border-b transition-colors w-full z-30 relative"
+            className="flex flex-col md:flex-row md:items-end justify-between mb-8 pb-3 border-b transition-colors w-full"
             style={{ borderColor: 'var(--bg-card-border, rgba(255, 255, 255, 0.1))' }}
           >
             <div>
@@ -479,7 +425,7 @@ export const CertificatesSection: React.FC = () => {
                   <button
                     key={cat.id}
                     onClick={() => setActiveCategory(cat.id)}
-                    className="px-3.5 py-1.5 rounded-full text-xs font-mono transition-all duration-200 border cursor-pointer"
+                    className="px-3 py-1.2 rounded-full text-xs font-mono transition-all duration-200 border cursor-pointer"
                     style={{
                       backgroundColor: isSelected 
                         ? 'var(--text-primary, #FFFFFF)' 
@@ -500,9 +446,83 @@ export const CertificatesSection: React.FC = () => {
             </div>
           </div>
 
-          {/* 3D Arena with Perspective */}
+          {/* Final Settled Gallery Grid (Exactly matching compact cards) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 w-full">
+            {filteredCerts.map((cert) => (
+              <CertificateCard
+                key={cert.id}
+                cert={cert}
+                isLightMode={isLightMode}
+                getTagFromCategory={getTagFromCategory}
+                onSelect={() => setLightboxCert(cert)}
+                className="hover:scale-[1.025] hover:-translate-y-1 transition-transform duration-300"
+              />
+            ))}
+          </div>
+
+        </div>
+      ) : (
+        /* 
+          PINNED SCROLL ARENA:
+          - Pinned during animation
+          - Cards revolve and directly place one by one in exact matching compact size
+        */
+        <div 
+          ref={pinWrapperRef}
+          className="h-screen w-full flex flex-col justify-between overflow-hidden pt-10 pb-6 max-w-6xl mx-auto px-6 sm:px-8 relative z-20"
+        >
+          {/* Header Section (STATIONARY & ALWAYS VISIBLE) */}
           <div 
-            ref={arenaRef}
+            className="flex flex-col md:flex-row md:items-end justify-between mb-3 pb-3 border-b transition-colors w-full z-30 relative"
+            style={{ borderColor: 'var(--bg-card-border, rgba(255, 255, 255, 0.1))' }}
+          >
+            <div>
+              <div className="flex items-center space-x-3 mb-1.5">
+                <span className="font-mono text-xs font-bold" style={{ color: 'var(--accent-color, #10B981)' }}>05</span>
+                <span className="w-8 h-[1px]" style={{ backgroundColor: 'var(--bg-card-border, rgba(255, 255, 255, 0.1))' }} />
+                <span className="font-mono text-xs uppercase tracking-widest" style={{ color: 'var(--text-muted, #94A3B8)' }}>
+                  CERTIFICATIONS
+                </span>
+              </div>
+              <h2 
+                className="font-sans text-2xl sm:text-4xl font-semibold tracking-tight transition-colors"
+                style={{ color: 'var(--text-primary, #FFFFFF)' }}
+              >
+                Certificates & Licenses
+              </h2>
+            </div>
+
+            {/* Category Filter Pills */}
+            <div className="flex flex-wrap gap-2 mt-3 md:mt-0">
+              {categories.map((cat) => {
+                const isSelected = activeCategory === cat.id;
+                return (
+                  <button
+                    key={cat.id}
+                    onClick={() => setActiveCategory(cat.id)}
+                    className="px-3 py-1.2 rounded-full text-xs font-mono transition-all duration-200 border cursor-pointer"
+                    style={{
+                      backgroundColor: isSelected 
+                        ? 'var(--text-primary, #FFFFFF)' 
+                        : (isLightMode ? '#FFFFFF' : 'rgba(255, 255, 255, 0.05)'),
+                      color: isSelected 
+                        ? (isLightMode ? '#FFFFFF' : '#000000') 
+                        : 'var(--text-secondary, #94A3B8)',
+                      borderColor: isSelected 
+                        ? 'var(--text-primary, #FFFFFF)' 
+                        : 'var(--bg-card-border, rgba(255, 255, 255, 0.1))',
+                      fontWeight: isSelected ? 600 : 400
+                    }}
+                  >
+                    {cat.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 3D Spatial Arena */}
+          <div 
             className="relative flex-1 w-full flex items-center justify-center overflow-visible"
             style={{
               perspective: '2200px',
@@ -533,9 +553,9 @@ export const CertificatesSection: React.FC = () => {
           <div className="w-full flex items-center justify-between text-[11px] font-mono text-typography-muted opacity-60 z-30 pt-2">
             <span className="flex items-center space-x-2">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>SCROLL TO ADVANCE CURVED ENTRY, ORBIT REVOLUTION & PLACEMENT</span>
+              <span>SCROLL TO ADVANCE 3D REVOLUTION & DIRECT PLACEMENT</span>
             </span>
-            <span>{filteredCerts.length} CREDENTIALS IN 3D REVOLUTION</span>
+            <span>{filteredCerts.length} CREDENTIALS IN COSMOS</span>
           </div>
         </div>
       )}
