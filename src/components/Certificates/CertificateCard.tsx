@@ -92,3 +92,4 @@ export const CertificateCard: React.FC<CertificateCardProps> = ({
     </div>
   );
 };
+
