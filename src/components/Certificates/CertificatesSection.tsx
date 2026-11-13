@@ -71,8 +71,8 @@ export const CertificatesSection: React.FC = () => {
   const hasMovedRef = useRef<boolean>(false);
   const singleSetWidthRef = useRef<number>(0);
 
-  // Speed: ~18-22 pixels per second moving LEFT TO RIGHT (+X direction)
-  const speed = 0.35; // px per frame at 60fps ~= 21px/sec
+  // Speed: tuned slightly faster per user request (~30-36 pixels per second)
+  const speed = 0.55; // px per frame at 60fps ~= 33px/sec
 
   // Calculate single set width
   const updateMetrics = useCallback(() => {
@@ -292,7 +292,7 @@ export const CertificatesSection: React.FC = () => {
                   }
                   setLightboxCert(cert);
                 }}
-                className="shrink-0 transition-transform duration-300 hover:scale-105 group"
+                className="shrink-0 transition-all duration-300 group relative z-10 hover:z-30 hover:scale-[1.12] hover:-translate-y-2 cursor-pointer"
                 style={{
                   transform: `translate3d(0, ${layout.yOffset}px, 0) rotate(${layout.rotate}deg)`,
                   transformOrigin: 'center center'
@@ -305,7 +305,7 @@ export const CertificatesSection: React.FC = () => {
                   - Mobile: ~220 × 155 px
                 */}
                 <div 
-                  className="w-[220px] sm:w-[260px] lg:w-[300px] rounded-[18px] sm:rounded-[22px] overflow-hidden border transition-all duration-300 shadow-2xl flex flex-col justify-between"
+                  className="w-[220px] sm:w-[260px] lg:w-[300px] rounded-[18px] sm:rounded-[22px] overflow-hidden border transition-all duration-300 shadow-2xl flex flex-col justify-between group-hover:border-[var(--accent-color)] group-hover:shadow-[0_24px_50px_-10px_var(--accent-glow,rgba(16,185,129,0.4))]"
                   style={{
                     backgroundColor: isLightMode ? '#FFFFFF' : 'var(--bg-card, rgba(16, 20, 24, 0.9))',
                     borderColor: 'var(--bg-card-border)',
